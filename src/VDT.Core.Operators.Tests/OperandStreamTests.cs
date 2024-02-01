@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using NSubstitute;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -21,20 +22,41 @@ public class OperandStreamTests {
 
     [Fact]
     public async Task WritesValuesToMultipleSubscriber() {
-        string? receivedValue1 = null;
-        string? receivedValue2 = null;
+        var receivedValues = new List<string>();
 
         var subject = new OperandStream<string>();
 
-        subject.Subscribe(value => receivedValue1 = value);
+        subject.Subscribe(receivedValues.Add);
         subject.Subscribe(async value => {
             await Task.Delay(1);
-            receivedValue2 = value;
+            receivedValues.Add(value);
         });
 
         await subject.Write("Foo");
 
-        Assert.Equal("Foo", receivedValue1);
-        Assert.Equal("Foo", receivedValue2);
+        Assert.Equal(new[] { "Foo", "Foo" }, receivedValues);
+    }
+
+    [Fact]
+    public async Task PipesValuesToOperator() {
+        var receivedValues = new List<string>();
+
+        var subject = new OperandStream<string>();
+        var op = Substitute.For<IOperator<string, string>>();
+
+        op.Execute("Foo").Returns(OperationResult<string>.Dismissed());
+        op.Execute("Bar").Returns(OperationResult<string>.Accepted("Bar"));
+
+        var result = subject.Pipe(op);
+
+        result.Subscribe(receivedValues.Add);
+
+        await subject.Write("Foo");
+        await subject.Write("Bar");
+
+        await op.Received().Execute("Foo");
+        await op.Received().Execute("Bar");
+
+        Assert.Equal(new[] { "Bar" }, receivedValues);
     }
 }

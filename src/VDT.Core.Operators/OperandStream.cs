@@ -21,4 +21,18 @@ public class OperandStream<TValue> {
 
     public void Subscribe(Func<TValue, Task> subscriber)
         => subscribers.Add(subscriber);
+
+    public OperandStream<TNewValue> Pipe<TNewValue>(IOperator<TValue, TNewValue> op) {
+        var operandStream = new OperandStream<TNewValue>();
+
+        Subscribe((async value => {
+            var result = await op.Execute(value);
+
+            if (result.IsAccepted) {
+                await operandStream.Write(result.Value);
+            }
+        }));
+
+        return operandStream;
+    }
 }
