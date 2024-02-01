@@ -1,0 +1,3 @@
+﻿# VDT.Core.Operators
+
+TOOD
