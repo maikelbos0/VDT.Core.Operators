@@ -8,7 +8,8 @@ public class Debounce<TValue> : IOperator<TValue, TValue> {
     internal Func<int, Task> Delay { get; set; } = Task.Delay;
 
     private readonly Func<TValue, Task<int>> delayFunc;
-    private DateTime lastExpectedExecutionTime = DateTime.MinValue;
+    private readonly object operationIdLock = new();
+    private Guid operationId;
 
     public Debounce(int delayInMilliseconds)
         : this(value => Task.FromResult(delayInMilliseconds)) { }
@@ -21,16 +22,20 @@ public class Debounce<TValue> : IOperator<TValue, TValue> {
     }
 
     public async Task<OperationResult<TValue>> Execute(TValue value) {
-        var delayInMilliseconds = await delayFunc(value);
+        Guid expectedOperationId;
+        bool isAccepted;
 
-        // TODO we may require locking around lastExpectedExecutionTime
-        // TODO extract DateTime.Now for mockability
-        var expectedExecutionTime = lastExpectedExecutionTime = DateTime.UtcNow.AddMilliseconds(delayInMilliseconds);
+        lock (operationIdLock) {
+            expectedOperationId = operationId = Guid.NewGuid();
+        }
 
-        await Delay(delayInMilliseconds);
+        await Delay(await delayFunc(value));
 
-        // TODO we may require a unique call identifier for high throughput
-        if (expectedExecutionTime == lastExpectedExecutionTime) {
+        lock (operationIdLock) {
+            isAccepted = expectedOperationId == operationId;
+        }
+
+        if (isAccepted) {
             return OperationResult<TValue>.Accepted(value);
         }
         else {
