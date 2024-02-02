@@ -39,4 +39,13 @@ public class OperandStreamExtensionsTests {
 
         subject.Received().Pipe(Arg.Any<Throttle<string>>());
     }
+
+    [Fact]
+    public void Flatten() {
+        var subject = Substitute.For<IOperandStream<IOperandStream<string>>>();
+
+        _ = subject.Flatten();
+
+        subject.Received().Pipe(Arg.Any<Flatten<string>>());
+    }
 }

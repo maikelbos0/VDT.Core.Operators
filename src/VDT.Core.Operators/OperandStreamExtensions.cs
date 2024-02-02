@@ -15,6 +15,9 @@ public static class OperandStreamExtensions {
     public static IOperandStream<TValue> Throttle<TValue>(this IOperandStream<TValue> operandStream, int delayInMilliseconds)
         => operandStream.Pipe(new Throttle<TValue>(delayInMilliseconds));
 
+    public static IOperandStream<TValue> Flatten<TValue>(this IOperandStream<IOperandStream<TValue>> operandStream)
+        => operandStream.Pipe(new Flatten<TValue>());
+
     // TODO add overloads
     // TODO maybe split into separate classes?
 }
