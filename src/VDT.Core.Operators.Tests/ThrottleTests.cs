@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace VDT.Core.Operators.Tests;
@@ -20,7 +21,22 @@ public class ThrottleTests {
     }
 
     [Fact]
-    public async Task DelaysForIntervalAfterFirstValue() {
+    public async Task SecondValueIsAccepted() {
+        var subject = new Throttle<string>(500);
+
+        subject.Delay = millisecondsDelay => {
+            return Task.CompletedTask;
+        };
+
+        _ = await subject.Execute("Foo");
+
+        var result = await subject.Execute("Bar");
+
+        Assert.True(result.IsAccepted);
+    }
+
+    [Fact]
+    public async Task DelaysSecondValueForInterval() {
         var subject = new Throttle<string>(500);
         int? requestedDelay = null;
 
@@ -28,15 +44,15 @@ public class ThrottleTests {
             requestedDelay = millisecondsDelay;
             return Task.CompletedTask;
         };
+        subject.UtcNow = () => new DateTime(2024, 1, 2, 3, 14, 15, 30, DateTimeKind.Utc);
 
         _ = await subject.Execute("Foo");
-        
-        var result = await subject.Execute("Bar");
 
-        Assert.NotNull(requestedDelay);
-        Assert.Equal(500, requestedDelay.Value, 5.0); // TODO fix
+        Assert.Null(requestedDelay);
 
-        Assert.True(result.IsAccepted);
+        _ = await subject.Execute("Bar");
+
+        Assert.Equal(500, requestedDelay);
     }
 
     [Fact]
