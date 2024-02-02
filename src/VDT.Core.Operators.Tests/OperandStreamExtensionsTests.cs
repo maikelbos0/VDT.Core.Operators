@@ -30,4 +30,13 @@ public class OperandStreamExtensionsTests {
 
         subject.Received().Pipe(Arg.Any<Debounce<string>>());
     }
+
+    [Fact]
+    public void Throttle() {
+        var subject = Substitute.For<IOperandStream<string>>();
+
+        _ = subject.Throttle(500);
+
+        subject.Received().Pipe(Arg.Any<Throttle<string>>());
+    }
 }

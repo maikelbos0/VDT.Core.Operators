@@ -6,7 +6,7 @@ namespace VDT.Core.Operators.Tests;
 public class DebounceTests {
     [Fact]
     public async Task DelaysForInterval() {
-        var subject = new Debounce<int>(500);
+        var subject = new Debounce<string>(500);
         int? requestedDelay = null;
 
         subject.Delay = millisecondsDelay => {
@@ -14,15 +14,15 @@ public class DebounceTests {
             return Task.CompletedTask;
         };
 
-        await subject.Execute(1);
+        _ = await subject.Execute("Foo");
 
         Assert.Equal(500, requestedDelay);
     }
 
     [Fact]
-    public async Task LastResultInIntervalIsAccepted() {
+    public async Task LastValueInIntervalIsAccepted() {
         var isDelayed = true;
-        var subject = new Debounce<int>(500);
+        var subject = new Debounce<string>(500);
 
         subject.Delay = async millisecondsDelay => {
             while (isDelayed) {
@@ -30,8 +30,8 @@ public class DebounceTests {
             }
         };
 
-        var task1 = subject.Execute(1);
-        var task2 = subject.Execute(2);
+        var task1 = subject.Execute("Foo");
+        var task2 = subject.Execute("Bar");
 
         isDelayed = false;
 
@@ -43,9 +43,9 @@ public class DebounceTests {
     }
 
     [Fact]
-    public async Task NewResultAfterIntervalIsAccepted() {
+    public async Task NewValueAfterIntervalIsAccepted() {
         var isDelayed = true;
-        var subject = new Debounce<int>(500);
+        var subject = new Debounce<string>(500);
 
         subject.Delay = async millisecondsDelay => {
             while (isDelayed) {
@@ -53,21 +53,14 @@ public class DebounceTests {
             }
         };
 
-        var task1 = subject.Execute(1);
-        var task2 = subject.Execute(2);
+        var tasks = new[] { subject.Execute("Foo"), subject.Execute("Bar") };
 
         isDelayed = false;
 
-        await Task.WhenAll(task1, task2);
+        await Task.WhenAll(tasks);
 
-        isDelayed = true;
+        var result = await subject.Execute("Baz");
 
-        var task3 = subject.Execute(3);
-
-        isDelayed = false;
-
-        var value3 = await task3;
-
-        Assert.True(value3.IsAccepted);
+        Assert.True(result.IsAccepted);
     }
 }

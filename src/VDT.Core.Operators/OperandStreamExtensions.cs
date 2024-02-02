@@ -11,4 +11,10 @@ public static class OperandStreamExtensions {
 
     public static IOperandStream<TValue> Debounce<TValue>(this IOperandStream<TValue> operandStream, int delayInMilliseconds)
         => operandStream.Pipe(new Debounce<TValue>(delayInMilliseconds));
+
+    public static IOperandStream<TValue> Throttle<TValue>(this IOperandStream<TValue> operandStream, int delayInMilliseconds)
+        => operandStream.Pipe(new Throttle<TValue>(delayInMilliseconds));
+
+    // TODO add overloads
+    // TODO maybe split into separate classes?
 }
