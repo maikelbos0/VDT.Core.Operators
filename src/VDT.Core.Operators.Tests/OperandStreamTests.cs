@@ -44,6 +44,7 @@ public class OperandStreamTests {
         var subject = new OperandStream<string>();
         var op = Substitute.For<IOperator<string, string>>();
 
+        op.GetResultStream().Returns(new OperandStream<string>());
         op.Execute("Foo").Returns(OperationResult<string>.Dismissed());
         op.Execute("Bar").Returns(OperationResult<string>.Accepted("Bar"));
 

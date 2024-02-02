@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using NSubstitute;
 using Xunit;
 
 namespace VDT.Core.Operators.Tests;
@@ -6,28 +6,28 @@ namespace VDT.Core.Operators.Tests;
 public class OperandStreamExtensionsTests {
     [Fact]
     public void Filter() {
-        var receivedValues = new List<string>();
-        var subject = new OperandStream<string>();
+        var subject = Substitute.For<IOperandStream<string>>();
 
-        var result = subject.Filter(value => value.StartsWith('B'));
-        result.Subscribe(receivedValues.Add);
+        _ = subject.Filter(value => value.StartsWith('B'));
 
-        subject.Write("Foo");
-        subject.Write("Bar");
-
-        Assert.Equal(new[] { "Bar" }, receivedValues);
+        subject.Received().Pipe(Arg.Any<Filter<string>>());
     }
 
     [Fact]
     public void Map() {
-        var receivedValues = new List<string>();
-        var subject = new OperandStream<string>();
+        var subject = Substitute.For<IOperandStream<string>>();
 
-        var result = subject.Map(value => $"{value}{value}");
+        _ = subject.Map(value => $"{value}{value}");
 
-        result.Subscribe(receivedValues.Add);
+        subject.Received().Pipe(Arg.Any<Map<string, string>>());
+    }
 
-        subject.Write("Foo");
-        Assert.Equal(new[] { "FooFoo" }, receivedValues);
+    [Fact]
+    public void Debounce() {
+        var subject = Substitute.For<IOperandStream<string>>();
+
+        _ = subject.Debounce(500);
+
+        subject.Received().Pipe(Arg.Any<Debounce<string>>());
     }
 }

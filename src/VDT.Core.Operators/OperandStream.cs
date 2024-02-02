@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 // TODO add cancellation tokens?
-public class OperandStream<TValue> {
+public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly List<Func<TValue, Task>> subscribers = new();
 
     public Task Write(TValue value) {
@@ -22,16 +22,16 @@ public class OperandStream<TValue> {
     public void Subscribe(Func<TValue, Task> subscriber)
         => subscribers.Add(subscriber);
 
-    public OperandStream<TNewValue> Pipe<TNewValue>(IOperator<TValue, TNewValue> op) {
-        var operandStream = new OperandStream<TNewValue>();
+    public IOperandStream<TNewValue> Pipe<TNewValue>(IOperator<TValue, TNewValue> op) {
+        var operandStream = op.GetResultStream();
 
-        Subscribe((async value => {
+        Subscribe(async value => {
             var result = await op.Execute(value);
 
             if (result.IsAccepted) {
                 await operandStream.Write(result.Value);
             }
-        }));
+        });
 
         return operandStream;
     }
