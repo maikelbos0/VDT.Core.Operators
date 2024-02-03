@@ -5,13 +5,12 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 public class Throttle<TValue> : IOperator<TValue, TValue> {
-    // TODO extract to central place
-    internal Func<int, Task> Delay { get; set; } = Task.Delay;
-    internal Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
-
     private readonly Func<TValue, Task<int>> delayFunc;
     private int operationId = 0;
     private DateTime nextExpectedExecutionTime = DateTime.MinValue;
+
+    internal Func<int, Task> Delay { get; set; } = Task.Delay;
+    internal Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
 
     public Throttle(int delayInMilliseconds)
         : this(value => Task.FromResult(delayInMilliseconds)) { }

@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 public class Debounce<TValue> : IOperator<TValue, TValue> {
-    // TODO extract to central place
-    internal Func<int, Task> Delay { get; set; } = Task.Delay;
-
     private readonly Func<TValue, Task<int>> delayFunc;
     private int operationId = 0;
+
+    internal Func<int, Task> Delay { get; set; } = Task.Delay;
 
     public Debounce(int delayInMilliseconds)
         : this(value => Task.FromResult(delayInMilliseconds)) { }
