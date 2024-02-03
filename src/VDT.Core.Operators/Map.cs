@@ -13,6 +13,6 @@ public class Map<TValue, TNewValue> : IOperator<TValue, TNewValue> {
         this.func = func;
     }
 
-    public async Task<OperationResult<TNewValue>> Execute(TValue value)
-        => OperationResult<TNewValue>.Accepted(await func(value));
+    public async Task Execute(TValue value, IOperandStream<TNewValue> targetStream)
+        => await targetStream.Write(await func(value));
 }

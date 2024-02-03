@@ -13,12 +13,9 @@ public class Filter<TValue> : IOperator<TValue, TValue> {
         this.predicate = predicate;
     }
 
-    public async Task<OperationResult<TValue>> Execute(TValue value) {
+    public async Task Execute(TValue value, IOperandStream<TValue> targetStream) {
         if (await predicate(value)) {
-            return OperationResult<TValue>.Accepted(value);
-        }
-        else {
-            return OperationResult<TValue>.Dismissed();
+            await targetStream.Write(value);
         }
     }
 }

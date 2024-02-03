@@ -1,24 +1,27 @@
-﻿using System.Threading.Tasks;
+﻿using NSubstitute;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace VDT.Core.Operators.Tests;
 
 public class FilterTests {
     [Fact]
-    public async Task ReturnsDismissedWhenNotMatched() {
+    public async Task DoesNotWriteWhenNotMatched() {
         var subject = new Filter<string>(value => value.StartsWith('B'));
+        var targetStream = Substitute.For<IOperandStream<string>>();
 
-        var result = await subject.Execute("Foo");
+        await subject.Execute("Foo", targetStream);
 
-        Assert.False(result.IsAccepted);
+        await targetStream.DidNotReceive().Write(Arg.Any<string>());
     }
 
     [Fact]
-    public async Task ReturnsAcceptedWhenMatched() {
+    public async Task WritesWhenMatched() {
         var subject = new Filter<string>(value => value.StartsWith('B'));
+        var targetStream = Substitute.For<IOperandStream<string>>();
 
-        var result = await subject.Execute("Bar");
+        await subject.Execute("Bar", targetStream);
 
-        Assert.True(result.IsAccepted);
+        await targetStream.Received().Write("Bar");
     }
 }

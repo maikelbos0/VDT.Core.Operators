@@ -6,6 +6,7 @@ using Xunit;
 namespace VDT.Core.Operators.Tests;
 
 public class OperandStreamTests {
+    // TODO could we substitute funcs?
     [Fact]
     public async Task WritesValuesToSubscriber() {
         var receivedValues = new List<string>();
@@ -44,20 +45,14 @@ public class OperandStreamTests {
         var subject = new OperandStream<string>();
         var op = Substitute.For<IOperator<string, string>>();
 
-        op.GetResultStream().Returns(new OperandStream<string>());
-        op.Execute("Foo").Returns(OperationResult<string>.Dismissed());
-        op.Execute("Bar").Returns(OperationResult<string>.Accepted("Bar"));
+        op.Execute(Arg.Any<string>(), Arg.Any<IOperandStream<string>>()).Returns(callInfo => callInfo.ArgAt<IOperandStream<string>>(1).Write(callInfo.ArgAt<string>(0)));
 
         var result = subject.Pipe(op);
 
         result.Subscribe(receivedValues.Add);
 
         await subject.Write("Foo");
-        await subject.Write("Bar");
 
-        await op.Received().Execute("Foo");
-        await op.Received().Execute("Bar");
-
-        Assert.Equal(new[] { "Bar" }, receivedValues);
+        Assert.Equal(new[] { "Foo" }, receivedValues);
     }
 }

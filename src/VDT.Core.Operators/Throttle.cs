@@ -22,7 +22,7 @@ public class Throttle<TValue> : IOperator<TValue, TValue> {
         this.delayFunc = delayFunc;
     }
 
-    public async Task<OperationResult<TValue>> Execute(TValue value) {
+    public async Task Execute(TValue value, IOperandStream<TValue> targetStream) {
         var now = UtcNow();
         var requiredDelayInMilliseconds = (nextExpectedExecutionTime - now).TotalMilliseconds;
 
@@ -33,12 +33,12 @@ public class Throttle<TValue> : IOperator<TValue, TValue> {
             await Delay((int)requiredDelayInMilliseconds);
 
             if (operationId != expectedOperationId) {
-                return OperationResult<TValue>.Dismissed();
+                return;
             }
         }
 
         nextExpectedExecutionTime = UtcNow().AddMilliseconds(await delayFunc(value));
 
-        return OperationResult<TValue>.Accepted(value);
+        await targetStream.Write(value);
     }
 }

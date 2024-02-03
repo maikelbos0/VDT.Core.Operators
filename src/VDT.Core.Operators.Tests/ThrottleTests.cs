@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NSubstitute;
+using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -6,39 +7,27 @@ namespace VDT.Core.Operators.Tests;
 
 public class ThrottleTests {
     [Fact]
-    public async Task FirstValueIsAccepted() {
+    public async Task WritesFirstValueImmediately() {
+        int? requestedDelay = null;
         var subject = new Throttle<string>(500);
-
-        subject.Delay = async millisecondsDelay => {
-            while (true) {
-                await Task.Delay(1);
-            }
-        };
-
-        var result = await subject.Execute("Foo");
-
-        Assert.True(result.IsAccepted);
-    }
-
-    [Fact]
-    public async Task SecondValueIsAccepted() {
-        var subject = new Throttle<string>(500);
+        var targetStream = Substitute.For<IOperandStream<string>>();
 
         subject.Delay = millisecondsDelay => {
+            requestedDelay = millisecondsDelay;
             return Task.CompletedTask;
         };
 
-        _ = await subject.Execute("Foo");
+        await subject.Execute("Foo", targetStream);
 
-        var result = await subject.Execute("Bar");
-
-        Assert.True(result.IsAccepted);
+        await targetStream.Received().Write("Foo");
+        Assert.Null(requestedDelay);
     }
 
     [Fact]
-    public async Task DelaysSecondValueForInterval() {
-        var subject = new Throttle<string>(500);
+    public async Task WritesSecondValueAfterDelay() {
         int? requestedDelay = null;
+        var subject = new Throttle<string>(500);
+        var targetStream = Substitute.For<IOperandStream<string>>();
 
         subject.Delay = millisecondsDelay => {
             requestedDelay = millisecondsDelay;
@@ -46,19 +35,19 @@ public class ThrottleTests {
         };
         subject.UtcNow = () => new DateTime(2024, 1, 2, 3, 14, 15, 30, DateTimeKind.Utc);
 
-        _ = await subject.Execute("Foo");
+        await subject.Execute("Foo", targetStream);
 
-        Assert.Null(requestedDelay);
-
-        _ = await subject.Execute("Bar");
-
+        await subject.Execute("Bar", targetStream);
+        
+        await targetStream.Received().Write("Bar");
         Assert.Equal(500, requestedDelay);
     }
 
     [Fact]
-    public async Task LastResultInIntervalIsAccepted() {
+    public async Task OnlyLastResultInIntervalIsAccepted() {
         var isDelayed = true;
         var subject = new Throttle<string>(500);
+        var targetStream = Substitute.For<IOperandStream<string>>();
 
         subject.Delay = async millisecondsDelay => {
             while (isDelayed) {
@@ -66,17 +55,16 @@ public class ThrottleTests {
             }
         };
 
-        _ = await subject.Execute("Foo");
-        
-        var task1 = subject.Execute("Bar");
-        var task2 = subject.Execute("Baz");
+        await subject.Execute("Foo", targetStream);
+
+        var task1 = subject.Execute("Bar", targetStream);
+        var task2 = subject.Execute("Baz", targetStream);
 
         isDelayed = false;
 
-        var result1 = await task1;
-        var result2 = await task2;
+        await Task.WhenAll(task1, task2);
 
-        Assert.False(result1.IsAccepted);
-        Assert.True(result2.IsAccepted);
+        await targetStream.DidNotReceive().Write("Bar");
+        await targetStream.Received().Write("Baz");
     }
 }

@@ -23,16 +23,10 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         => subscribers.Add(subscriber);
 
     public IOperandStream<TNewValue> Pipe<TNewValue>(IOperator<TValue, TNewValue> op) {
-        var operandStream = op.GetResultStream();
+        var targetStream = new OperandStream<TNewValue>();
 
-        Subscribe(async value => {
-            var result = await op.Execute(value);
+        Subscribe(async value => await op.Execute(value, targetStream));
 
-            if (result.IsAccepted) {
-                await operandStream.Write(result.Value);
-            }
-        });
-
-        return operandStream;
+        return targetStream;
     }
 }

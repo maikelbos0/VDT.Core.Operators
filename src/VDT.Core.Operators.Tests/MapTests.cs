@@ -1,16 +1,17 @@
-﻿using System.Threading.Tasks;
+﻿using NSubstitute;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace VDT.Core.Operators.Tests;
 
 public class MapTests {
     [Fact]
-    public async Task ReturnsMappedObject() {
+    public async Task WritesMappedObject() {
         var subject = new Map<string, string>(value => $"{value}{value}");
+        var targetStream = Substitute.For<IOperandStream<string>>();
 
-        var result = await subject.Execute("Foo");
+        await subject.Execute("Foo", targetStream);
 
-        Assert.True(result.IsAccepted);
-        Assert.Equal("FooFoo", result.Value);
+        await targetStream.Received().Write("FooFoo");
     }
 }
