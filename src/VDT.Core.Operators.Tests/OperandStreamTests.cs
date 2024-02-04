@@ -1,58 +1,54 @@
 ﻿using NSubstitute;
-using System.Collections.Generic;
+using System;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace VDT.Core.Operators.Tests;
 
 public class OperandStreamTests {
-    // TODO could we substitute funcs?
     [Fact]
     public async Task WritesValuesToSubscriber() {
-        var receivedValues = new List<string>();
-
         var subject = new OperandStream<string>();
+        var subscribeAction = Substitute.For<Action<string>>();
 
-        subject.Subscribe(receivedValues.Add);
+        subject.Subscribe(subscribeAction);
 
         await subject.Write("Foo");
         await subject.Write("Bar");
 
-        Assert.Equal(new[] { "Foo", "Bar" }, receivedValues);
+        subscribeAction.Received().Invoke("Foo");
+        subscribeAction.Received().Invoke("Bar");
     }
 
     [Fact]
     public async Task WritesValuesToMultipleSubscriber() {
-        var receivedValues = new List<string>();
-
         var subject = new OperandStream<string>();
+        var subscribeAction = Substitute.For<Action<string>>();
+        var subscribeFunc = Substitute.For<Func<string, Task>>();
 
-        subject.Subscribe(receivedValues.Add);
-        subject.Subscribe(async value => {
-            await Task.Delay(1);
-            receivedValues.Add(value);
-        });
+        subject.Subscribe(subscribeAction);
+        subject.Subscribe(subscribeFunc);
 
         await subject.Write("Foo");
 
-        Assert.Equal(new[] { "Foo", "Foo" }, receivedValues);
+        subscribeAction.Received().Invoke("Foo");
+        await subscribeFunc.Received().Invoke("Foo");
     }
 
     [Fact]
     public async Task PipesValuesToOperator() {
-        var receivedValues = new List<string>();
-
         var subject = new OperandStream<string>();
         var op = Substitute.For<IOperator<string, string>>();
+        var subscribeAction = Substitute.For<Action<string>>();
 
         op.Execute(Arg.Any<string>(), Arg.Any<IOperandStream<string>>()).Returns(callInfo => callInfo.ArgAt<IOperandStream<string>>(1).Write(callInfo.ArgAt<string>(0)));
 
         var result = subject.Pipe(op);
 
-        result.Subscribe(receivedValues.Add);
+        result.Subscribe(subscribeAction);
 
         await subject.Write("Foo");
 
-        Assert.Equal(new[] { "Foo" }, receivedValues);
+        subscribeAction.Received().Invoke("Foo");
     }
 }

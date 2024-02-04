@@ -1,5 +1,4 @@
 ﻿using NSubstitute;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -8,8 +7,6 @@ namespace VDT.Core.Operators.Tests;
 public class FlattenTests {
     [Fact]
     public async Task WritesInnerStreamValues() {
-        var receivedValues = new List<string>();
-
         var subject = new Flatten<string>();
         var targetStream = Substitute.For<IOperandStream<string>>();
 
