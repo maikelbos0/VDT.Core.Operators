@@ -1,5 +1,6 @@
 ﻿using NSubstitute;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -7,7 +8,44 @@ namespace VDT.Core.Operators.Tests;
 
 public class OperandStreamTests {
     [Fact]
-    public async Task WritesValuesToSubscriber() {
+    public async Task WritesValueToSubscriberAction() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Action<string>>();
+
+        subject.Subscribe(subscriber);
+
+        await subject.Write("Foo");
+
+        subscriber.Received().Invoke("Foo");
+    }
+
+    [Fact]
+    public async Task WritesValueToSubscriberTask() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Func<string, Task>>();
+
+        subject.Subscribe(subscriber);
+
+        await subject.Write("Foo");
+
+        await subscriber.Received().Invoke("Foo");
+    }
+
+    [Fact]
+    public async Task WritesValueToCancellableSubscriberTask() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
+        var cancellationTokenSource = new CancellationTokenSource();
+
+        subject.Subscribe(subscriber);
+
+        await subject.Write("Foo", cancellationTokenSource.Token);
+
+        await subscriber.Received().Invoke("Foo", cancellationTokenSource.Token);
+    }
+
+    [Fact]
+    public async Task WritesMultipleValuesToSubscriber() {
         var subject = new OperandStream<string>();
         var subscribeAction = Substitute.For<Action<string>>();
 
@@ -21,18 +59,18 @@ public class OperandStreamTests {
     }
 
     [Fact]
-    public async Task WritesValuesToMultipleSubscriber() {
+    public async Task WritesValuesToMultipleSubscribers() {
         var subject = new OperandStream<string>();
-        var subscribeAction = Substitute.For<Action<string>>();
-        var subscribeFunc = Substitute.For<Func<string, Task>>();
+        var subscriber1 = Substitute.For<Action<string>>();
+        var subscriber2 = Substitute.For<Action<string>>();
 
-        subject.Subscribe(subscribeAction);
-        subject.Subscribe(subscribeFunc);
+        subject.Subscribe(subscriber1);
+        subject.Subscribe(subscriber2);
 
         await subject.Write("Foo");
 
-        subscribeAction.Received().Invoke("Foo");
-        await subscribeFunc.Received().Invoke("Foo");
+        subscriber1.Received().Invoke("Foo");
+        subscriber2.Received().Invoke("Foo");
     }
 
     [Fact]
