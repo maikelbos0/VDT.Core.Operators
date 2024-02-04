@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace VDT.Core.Operators;
@@ -13,6 +14,6 @@ public class Map<TValue, TNewValue> : IOperator<TValue, TNewValue> {
         this.func = func;
     }
 
-    public async Task Execute(TValue value, IOperandStream<TNewValue> targetStream)
-        => await targetStream.Write(await func(value));
+    public async Task Execute(TValue value, IOperandStream<TNewValue> targetStream, CancellationToken cancellationToken)
+        => await targetStream.Write(await func(value), cancellationToken);
 }

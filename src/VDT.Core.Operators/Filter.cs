@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace VDT.Core.Operators;
@@ -13,9 +14,9 @@ public class Filter<TValue> : IOperator<TValue, TValue> {
         this.predicate = predicate;
     }
 
-    public async Task Execute(TValue value, IOperandStream<TValue> targetStream) {
+    public async Task Execute(TValue value, IOperandStream<TValue> targetStream, CancellationToken cancellationToken) {
         if (await predicate(value)) {
-            await targetStream.Write(value);
+            await targetStream.Write(value, cancellationToken);
         }
     }
 }

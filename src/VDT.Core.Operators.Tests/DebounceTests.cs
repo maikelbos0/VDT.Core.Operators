@@ -1,4 +1,6 @@
 ﻿using NSubstitute;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -9,16 +11,13 @@ public class DebounceTests {
     public async Task DelaysForInterval() {
         var subject = new Debounce<string>(500);
         var targetStream = Substitute.For<IOperandStream<string>>();
-        int? requestedDelay = null;
+        var cancellationTokenSource = new CancellationTokenSource();
 
-        subject.Delay = millisecondsDelay => {
-            requestedDelay = millisecondsDelay;
-            return Task.CompletedTask;
-        };
+        subject.Delay = Substitute.For<Func<int, CancellationToken, Task>>();
 
-        await subject.Execute("Foo", targetStream);
+        await subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
 
-        Assert.Equal(500, requestedDelay);
+        await subject.Delay.Received().Invoke(500, cancellationTokenSource.Token);
     }
 
     [Fact]
@@ -26,22 +25,23 @@ public class DebounceTests {
         var isDelayed = true;
         var subject = new Debounce<string>(500);
         var targetStream = Substitute.For<IOperandStream<string>>();
+        var cancellationTokenSource = new CancellationTokenSource();
 
-        subject.Delay = async millisecondsDelay => {
+        subject.Delay = async (_, _) => {
             while (isDelayed) {
                 await Task.Delay(1);
             }
         };
 
-        var task1 = subject.Execute("Foo", targetStream);
-        var task2 = subject.Execute("Bar", targetStream);
+        var task1 = subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
+        var task2 = subject.Execute("Bar", targetStream, cancellationTokenSource.Token);
 
         isDelayed = false;
 
         await Task.WhenAll(task1, task2);
 
-        await targetStream.DidNotReceive().Write("Foo");
-        await targetStream.Received().Write("Bar");
+        await targetStream.DidNotReceive().Write("Foo", Arg.Any<CancellationToken>());
+        await targetStream.Received().Write("Bar", cancellationTokenSource.Token);
     }
 
     [Fact]
@@ -49,21 +49,25 @@ public class DebounceTests {
         var isDelayed = true;
         var subject = new Debounce<string>(500);
         var targetStream = Substitute.For<IOperandStream<string>>();
+        var cancellationTokenSource = new CancellationTokenSource();
 
-        subject.Delay = async millisecondsDelay => {
+        subject.Delay = async (_, _)  => {
             while (isDelayed) {
                 await Task.Delay(1);
             }
         };
 
-        var tasks = new[] { subject.Execute("Foo", targetStream), subject.Execute("Bar", targetStream) };
+        var tasks = new[] {
+            subject.Execute("Foo", targetStream, cancellationTokenSource.Token),
+            subject.Execute("Bar", targetStream, cancellationTokenSource.Token)
+        };
 
         isDelayed = false;
 
         await Task.WhenAll(tasks);
 
-        await subject.Execute("Baz", targetStream);
+        await subject.Execute("Baz", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.Received().Write("Baz");
+        await targetStream.Received().Write("Baz", cancellationTokenSource.Token);
     }
 }

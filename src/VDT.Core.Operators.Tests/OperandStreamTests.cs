@@ -79,7 +79,7 @@ public class OperandStreamTests {
         var op = Substitute.For<IOperator<string, string>>();
         var subscribeAction = Substitute.For<Action<string>>();
 
-        op.Execute(Arg.Any<string>(), Arg.Any<IOperandStream<string>>()).Returns(callInfo => callInfo.ArgAt<IOperandStream<string>>(1).Write(callInfo.ArgAt<string>(0)));
+        op.Execute(Arg.Any<string>(), Arg.Any<IOperandStream<string>>(), Arg.Any<CancellationToken>()).Returns(callInfo => callInfo.ArgAt<IOperandStream<string>>(1).Write(callInfo.ArgAt<string>(0)));
 
         var result = subject.Pipe(op);
 

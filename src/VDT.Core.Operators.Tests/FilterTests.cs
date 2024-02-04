@@ -1,4 +1,5 @@
 ﻿using NSubstitute;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -9,19 +10,21 @@ public class FilterTests {
     public async Task DoesNotWriteWhenNotMatched() {
         var subject = new Filter<string>(value => value.StartsWith('B'));
         var targetStream = Substitute.For<IOperandStream<string>>();
+        var cancellationTokenSource = new CancellationTokenSource();
 
-        await subject.Execute("Foo", targetStream);
+        await subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.DidNotReceive().Write(Arg.Any<string>());
+        await targetStream.DidNotReceive().Write(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task WritesWhenMatched() {
         var subject = new Filter<string>(value => value.StartsWith('B'));
         var targetStream = Substitute.For<IOperandStream<string>>();
+        var cancellationTokenSource = new CancellationTokenSource();
 
-        await subject.Execute("Bar", targetStream);
+        await subject.Execute("Bar", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.Received().Write("Bar");
+        await targetStream.Received().Write("Bar", cancellationTokenSource.Token);
     }
 }

@@ -30,7 +30,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     public IOperandStream<TNewValue> Pipe<TNewValue>(IOperator<TValue, TNewValue> op) {
         var targetStream = new OperandStream<TNewValue>();
 
-        Subscribe(async value => await op.Execute(value, targetStream));
+        Subscribe(async (value, cancellationToken) => await op.Execute(value, targetStream, cancellationToken));
 
         return targetStream;
     }
