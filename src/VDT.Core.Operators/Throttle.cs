@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 public class Throttle<TValue> : IOperator<TValue, TValue> {
-    private readonly Func<TValue, Task<int>> delayFunc;
+    private readonly Func<CancellationToken, Task<int>> delayFunc;
     private int operationId = 0;
     private DateTime nextExpectedExecutionTime = DateTime.MinValue;
 
@@ -13,12 +13,15 @@ public class Throttle<TValue> : IOperator<TValue, TValue> {
     internal Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
 
     public Throttle(int delayInMilliseconds)
-        : this(value => Task.FromResult(delayInMilliseconds)) { }
+        : this(_ => Task.FromResult(delayInMilliseconds)) { }
 
-    public Throttle(Func<TValue, int> delayFunc)
-        : this(value => Task.FromResult(delayFunc(value))) { }
+    public Throttle(Func<int> delayFunc)
+        : this(_ => Task.FromResult(delayFunc())) { }
 
-    public Throttle(Func<TValue, Task<int>> delayFunc) {
+    public Throttle(Func<Task<int>> delayFunc)
+        : this(_ => delayFunc()) { }
+
+    public Throttle(Func<CancellationToken, Task<int>> delayFunc) {
         this.delayFunc = delayFunc;
     }
 
@@ -37,7 +40,7 @@ public class Throttle<TValue> : IOperator<TValue, TValue> {
             }
         }
 
-        nextExpectedExecutionTime = UtcNow().AddMilliseconds(await delayFunc(value));
+        nextExpectedExecutionTime = UtcNow().AddMilliseconds(await delayFunc(cancellationToken));
 
         await targetStream.Write(value, cancellationToken);
     }
