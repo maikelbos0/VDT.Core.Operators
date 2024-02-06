@@ -10,5 +10,5 @@ public interface IOperandStream<TValue> {
     void Subscribe(Action<TValue> subscriber);
     void Subscribe(Func<TValue, Task> subscriber);
     void Subscribe(Func<TValue, CancellationToken, Task> subscriber);
-    IOperandStream<TNewValue> Pipe<TNewValue>(IOperator<TValue, TNewValue> op);
+    IOperandStream<TTransformedValue> Pipe<TTransformedValue>(IOperator<TValue, TTransformedValue> op);
 }

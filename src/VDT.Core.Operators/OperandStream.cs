@@ -27,8 +27,8 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     public void Subscribe(Func<TValue, CancellationToken, Task> subscriber)
         => subscribers.Add(subscriber);
 
-    public IOperandStream<TNewValue> Pipe<TNewValue>(IOperator<TValue, TNewValue> op) {
-        var targetStream = new OperandStream<TNewValue>();
+    public IOperandStream<TTransformedValue> Pipe<TTransformedValue>(IOperator<TValue, TTransformedValue> op) {
+        var targetStream = new OperandStream<TTransformedValue>();
 
         Subscribe(async (value, cancellationToken) => await op.Execute(value, targetStream, cancellationToken));
 
