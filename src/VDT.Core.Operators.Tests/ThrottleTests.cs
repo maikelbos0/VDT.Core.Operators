@@ -112,9 +112,9 @@ public class ThrottleTests {
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
-        subject.Delay = async (_, _) => {
+        subject.Delay = async (_, cancellationToken) => {
             while (isDelayed) {
-                await Task.Delay(1);
+                await Task.Delay(1, cancellationToken);
             }
         };
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 public class OperandStream<TValue> : IOperandStream<TValue> {
-    private readonly List<Func<TValue, CancellationToken, Task>> subscribers = new();
+    private readonly List<Func<TValue, CancellationToken, Task>> subscribers = [];
 
     public Task Write(TValue value)
         => Write(value, CancellationToken.None);
