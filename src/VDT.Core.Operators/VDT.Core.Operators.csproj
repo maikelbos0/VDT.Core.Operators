@@ -12,11 +12,11 @@
 		<Version>0.1.0</Version>
 		<Title>VDT.Core.Operators</Title>
 		<PackageIcon>icon_128.png</PackageIcon>
-		<Description>TODO</Description>
+		<Description>Operators for processing and transforming streams of values from a variety of sources</Description>
 		<Authors>Maikel Bos</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © 2023 Maikel Bos</Copyright>
-		<PackageTags>TODO</PackageTags>
+		<PackageTags>observable stream operator subscribe pipe map filter flatten debounce throttle</PackageTags>
 		<PackageProjectUrl>https://github.com/maikelbos0/VDT.Core.Operators</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
