@@ -8,6 +8,18 @@ namespace VDT.Core.Operators.Tests;
 
 public class OperandStreamTests {
     [Fact]
+    public async Task NotifiesSubscriberAction() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Action>();
+
+        subject.Subscribe(subscriber);
+
+        await subject.Write("Foo");
+
+        subscriber.Received().Invoke();
+    }
+
+    [Fact]
     public async Task WritesValueToSubscriberAction() {
         var subject = new OperandStream<string>();
         var subscriber = Substitute.For<Action<string>>();
@@ -20,6 +32,18 @@ public class OperandStreamTests {
     }
 
     [Fact]
+    public async Task NotifiesToSubscriberTask() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Func<Task>>();
+
+        subject.Subscribe(subscriber);
+
+        await subject.Write("Foo");
+
+        await subscriber.Received().Invoke();
+    }
+
+    [Fact]
     public async Task WritesValueToSubscriberTask() {
         var subject = new OperandStream<string>();
         var subscriber = Substitute.For<Func<string, Task>>();
@@ -29,6 +53,19 @@ public class OperandStreamTests {
         await subject.Write("Foo");
 
         await subscriber.Received().Invoke("Foo");
+    }
+
+    [Fact]
+    public async Task NotifiesCancellableSubscriberTask() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Func<CancellationToken, Task>>();
+        var cancellationTokenSource = new CancellationTokenSource();
+
+        subject.Subscribe(subscriber);
+
+        await subject.Write("Foo", cancellationTokenSource.Token);
+
+        await subscriber.Received().Invoke(cancellationTokenSource.Token);
     }
 
     [Fact]

@@ -25,16 +25,34 @@ public interface IOperandStream<TValue> {
     Task Write(TValue value, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Subscribe a method to execute when a stream is written to
+    /// </summary>
+    /// <param name="subscriber">Method that gets executed</param>
+    void Subscribe(Action subscriber);
+
+    /// <summary>
     /// Subscribe a method to receive values written to this stream
     /// </summary>
     /// <param name="subscriber">Method that handles the received value</param>
     void Subscribe(Action<TValue> subscriber);
 
     /// <summary>
+    /// Subscribe a method to execute when a stream is written to
+    /// </summary>
+    /// <param name="subscriber">Method that gets executed</param>
+    void Subscribe(Func<Task> subscriber);
+
+    /// <summary>
     /// Subscribe a method to receive values written to this stream
     /// </summary>
     /// <param name="subscriber">Method that handles the received value</param>
     void Subscribe(Func<TValue, Task> subscriber);
+
+    /// <summary>
+    /// Subscribe a method to execute when a stream is written to
+    /// </summary>
+    /// <param name="subscriber">Method that gets executed</param>
+    void Subscribe(Func<CancellationToken, Task> subscriber);
 
     /// <summary>
     /// Subscribe a method to receive values written to this stream
