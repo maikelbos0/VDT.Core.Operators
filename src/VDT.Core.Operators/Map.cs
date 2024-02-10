@@ -18,5 +18,5 @@ public class Map<TValue, TTransformedValue> : IOperator<TValue, TTransformedValu
     }
 
     public async Task Execute(TValue value, IOperandStream<TTransformedValue> targetStream, CancellationToken cancellationToken)
-        => await targetStream.Write(await func(value, cancellationToken), cancellationToken);
+        => await targetStream.Publish(await func(value, cancellationToken), cancellationToken);
 }

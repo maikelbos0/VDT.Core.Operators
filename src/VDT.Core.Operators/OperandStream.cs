@@ -11,12 +11,19 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly List<Func<TValue, CancellationToken, Task>> subscribers = [];
 
     /// <inheritdoc/>
-    public Task Write(TValue value)
-        => Write(value, CancellationToken.None);
+    public Task Publish(TValue value)
+        => Publish(value, CancellationToken.None);
 
     /// <inheritdoc/>
-    public Task Write(TValue value, CancellationToken cancellationToken)
+    public Task Publish(TValue value, CancellationToken cancellationToken)
         => Task.WhenAll(subscribers.Select(subscriber => subscriber(value, cancellationToken)));
+
+    /// <inheritdoc/>
+    public void Subscribe(Action subscriber)
+        => Subscribe((_, _) => {
+            subscriber();
+            return Task.CompletedTask;
+        });
 
     /// <inheritdoc/>
     public void Subscribe(Action<TValue> subscriber)
@@ -26,8 +33,16 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         });
 
     /// <inheritdoc/>
+    public void Subscribe(Func<Task> subscriber)
+        => Subscribe((_, _) => subscriber());
+
+    /// <inheritdoc/>
     public void Subscribe(Func<TValue, Task> subscriber)
         => subscribers.Add((value, _) => subscriber(value));
+
+    /// <inheritdoc/>
+    public void Subscribe(Func<CancellationToken, Task> subscriber)
+        => Subscribe((_, cancellationToken) => subscriber(cancellationToken));
 
     /// <inheritdoc/>
     public void Subscribe(Func<TValue, CancellationToken, Task> subscriber)
@@ -42,3 +57,6 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         return targetStream;
     }
 }
+
+/// <inheritdoc/>
+public class OperandStream : OperandStream<Void> { }
