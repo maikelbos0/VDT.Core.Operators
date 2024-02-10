@@ -8,7 +8,7 @@ namespace VDT.Core.Operators.Tests;
 
 public class OperandStreamTests {
     [Fact]
-    public async Task NotifiesSubscriberAction() {
+    public async Task PublishesToSubscriberAction() {
         var subject = new OperandStream<string>();
         var subscriber = Substitute.For<Action>();
 
@@ -32,7 +32,7 @@ public class OperandStreamTests {
     }
 
     [Fact]
-    public async Task NotifiesToSubscriberTask() {
+    public async Task PublishesToSubscriberTask() {
         var subject = new OperandStream<string>();
         var subscriber = Substitute.For<Func<Task>>();
 
@@ -56,7 +56,7 @@ public class OperandStreamTests {
     }
 
     [Fact]
-    public async Task NotifiesCancellableSubscriberTask() {
+    public async Task PublishesToCancellableSubscriberTask() {
         var subject = new OperandStream<string>();
         var subscriber = Substitute.For<Func<CancellationToken, Task>>();
         var cancellationTokenSource = new CancellationTokenSource();
