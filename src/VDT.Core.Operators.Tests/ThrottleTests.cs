@@ -8,7 +8,7 @@ namespace VDT.Core.Operators.Tests;
 
 public class ThrottleTests {
     [Fact]
-    public async Task WritesFirstValueImmediately() {
+    public async Task PublishesFirstValueImmediately() {
         var subject = new Throttle<string>(500);
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
@@ -17,12 +17,12 @@ public class ThrottleTests {
 
         await subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.Received().Write("Foo", cancellationTokenSource.Token);
+        await targetStream.Received().Publish("Foo", cancellationTokenSource.Token);
         await subject.Delay.DidNotReceive().Invoke(Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task WritesSecondValueAfterDelay_Constant() {
+    public async Task PublishesSecondValueAfterDelay_Constant() {
         var subject = new Throttle<string>(500);
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
@@ -35,14 +35,14 @@ public class ThrottleTests {
         await subject.Execute("Bar", targetStream, cancellationTokenSource.Token);
 
         Received.InOrder(() => {
-            targetStream.Write("Foo", cancellationTokenSource.Token);
+            targetStream.Publish("Foo", cancellationTokenSource.Token);
             subject.Delay.Invoke(500, cancellationTokenSource.Token);
-            targetStream.Write("Bar", cancellationTokenSource.Token);
+            targetStream.Publish("Bar", cancellationTokenSource.Token);
         });
     }
 
     [Fact]
-    public async Task WritesSecondValueAfterDelay_Function() {
+    public async Task PublishesSecondValueAfterDelay_Function() {
         var subject = new Throttle<string>(() => 500);
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
@@ -55,14 +55,14 @@ public class ThrottleTests {
         await subject.Execute("Bar", targetStream, cancellationTokenSource.Token);
 
         Received.InOrder(() => {
-            targetStream.Write("Foo", cancellationTokenSource.Token);
+            targetStream.Publish("Foo", cancellationTokenSource.Token);
             subject.Delay.Invoke(500, cancellationTokenSource.Token);
-            targetStream.Write("Bar", cancellationTokenSource.Token);
+            targetStream.Publish("Bar", cancellationTokenSource.Token);
         });
     }
 
     [Fact]
-    public async Task WritesSecondValueAfterDelay_TaskFunction() {
+    public async Task PublishesSecondValueAfterDelay_TaskFunction() {
         var subject = new Throttle<string>(() => Task.FromResult(500));
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
@@ -75,14 +75,14 @@ public class ThrottleTests {
         await subject.Execute("Bar", targetStream, cancellationTokenSource.Token);
 
         Received.InOrder(() => {
-            targetStream.Write("Foo", cancellationTokenSource.Token);
+            targetStream.Publish("Foo", cancellationTokenSource.Token);
             subject.Delay.Invoke(500, cancellationTokenSource.Token);
-            targetStream.Write("Bar", cancellationTokenSource.Token);
+            targetStream.Publish("Bar", cancellationTokenSource.Token);
         });
     }
 
     [Fact]
-    public async Task WritesSecondValueAfterDelay_CancellableTaskFunction() {
+    public async Task PublishesSecondValueAfterDelay_CancellableTaskFunction() {
         var func = Substitute.For<Func<CancellationToken, Task<int>>>();
         var subject = new Throttle<string>(func);
         var targetStream = Substitute.For<IOperandStream<string>>();
@@ -98,15 +98,15 @@ public class ThrottleTests {
 
         Received.InOrder(() => {
             func.Invoke(cancellationTokenSource.Token);
-            targetStream.Write("Foo", cancellationTokenSource.Token);
+            targetStream.Publish("Foo", cancellationTokenSource.Token);
             subject.Delay.Invoke(500, cancellationTokenSource.Token);
             func.Invoke(cancellationTokenSource.Token);
-            targetStream.Write("Bar", cancellationTokenSource.Token);
+            targetStream.Publish("Bar", cancellationTokenSource.Token);
         });
     }
 
     [Fact]
-    public async Task OnlyLastResultInIntervalIsWritten() {
+    public async Task OnlyLastResultInIntervalIsPublished() {
         var isDelayed = true;
         var subject = new Throttle<string>(500);
         var targetStream = Substitute.For<IOperandStream<string>>();
@@ -127,7 +127,7 @@ public class ThrottleTests {
 
         await Task.WhenAll(task1, task2);
 
-        await targetStream.DidNotReceive().Write("Bar", Arg.Any<CancellationToken>());
-        await targetStream.Received().Write("Baz", cancellationTokenSource.Token);
+        await targetStream.DidNotReceive().Publish("Bar", Arg.Any<CancellationToken>());
+        await targetStream.Received().Publish("Baz", cancellationTokenSource.Token);
     }
 }

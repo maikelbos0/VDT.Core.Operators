@@ -5,11 +5,11 @@ using System.Threading;
 namespace VDT.Core.Operators;
 
 public static class OperandStreamExtensions {
-    public static Task Write(this IOperandStream<Void> operandStream) 
-        => operandStream.Write(new Void());
+    public static Task Publish(this IOperandStream<Void> operandStream) 
+        => operandStream.Publish(new Void());
 
-    public static Task Write(this IOperandStream<Void> operandStream, CancellationToken cancellationToken) 
-        => operandStream.Write(new Void(), cancellationToken);
+    public static Task Publish(this IOperandStream<Void> operandStream, CancellationToken cancellationToken) 
+        => operandStream.Publish(new Void(), cancellationToken);
 
     public static IOperandStream<TValue> Filter<TValue>(this IOperandStream<TValue> operandStream, Func<TValue, bool> predicate)
         => operandStream.Pipe(new Filter<TValue>(predicate));
@@ -28,5 +28,4 @@ public static class OperandStreamExtensions {
 
     // TODO add overloads
     // TODO maybe split into separate classes?
-    // TODO rename Write to Publish
 }

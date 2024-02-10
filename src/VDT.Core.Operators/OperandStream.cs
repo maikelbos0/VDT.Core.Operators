@@ -11,11 +11,11 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly List<Func<TValue, CancellationToken, Task>> subscribers = [];
 
     /// <inheritdoc/>
-    public Task Write(TValue value)
-        => Write(value, CancellationToken.None);
+    public Task Publish(TValue value)
+        => Publish(value, CancellationToken.None);
 
     /// <inheritdoc/>
-    public Task Write(TValue value, CancellationToken cancellationToken)
+    public Task Publish(TValue value, CancellationToken cancellationToken)
         => Task.WhenAll(subscribers.Select(subscriber => subscriber(value, cancellationToken)));
 
     /// <inheritdoc/>

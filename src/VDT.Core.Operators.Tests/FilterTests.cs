@@ -8,51 +8,51 @@ namespace VDT.Core.Operators.Tests;
 
 public class FilterTests {
     [Fact]
-    public async Task DoesNotWriteWhenNotMatched_Predicate() {
+    public async Task DoesNotPublishWhenNotMatched_Predicate() {
         var subject = new Filter<string>(value => value.StartsWith('B'));
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
         await subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.DidNotReceive().Write(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await targetStream.DidNotReceive().Publish(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task WritesWhenMatched_Predicate() {
+    public async Task PublishesWhenMatched_Predicate() {
         var subject = new Filter<string>(value => value.StartsWith('B'));
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
         await subject.Execute("Bar", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.Received().Write("Bar", cancellationTokenSource.Token);
+        await targetStream.Received().Publish("Bar", cancellationTokenSource.Token);
     }
 
     [Fact]
-    public async Task DoesNotWriteWhenNotMatched_PredicateTask() {
+    public async Task DoesNotPublishWhenNotMatched_PredicateTask() {
         var subject = new Filter<string>(value => Task.FromResult(value.StartsWith('B')));
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
         await subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.DidNotReceive().Write(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await targetStream.DidNotReceive().Publish(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task WritesWhenMatched_PredicateTask() {
+    public async Task PublishesWhenMatched_PredicateTask() {
         var subject = new Filter<string>(value => Task.FromResult(value.StartsWith('B')));
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
         await subject.Execute("Bar", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.Received().Write("Bar", cancellationTokenSource.Token);
+        await targetStream.Received().Publish("Bar", cancellationTokenSource.Token);
     }
 
     [Fact]
-    public async Task DoesNotWriteWhenNotMatched_CancellablePredicateTask() {
+    public async Task DoesNotPublishWhenNotMatched_CancellablePredicateTask() {
         var predicate = Substitute.For<Func<string, CancellationToken, Task<bool>>>();
         var subject = new Filter<string>(predicate);
         var targetStream = Substitute.For<IOperandStream<string>>();
@@ -63,11 +63,11 @@ public class FilterTests {
         await subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
 
         await predicate.Received().Invoke("Foo", cancellationTokenSource.Token);
-        await targetStream.DidNotReceive().Write(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await targetStream.DidNotReceive().Publish(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task WritesWhenMatched_CancellablePredicateTask() {
+    public async Task PublishesWhenMatched_CancellablePredicateTask() {
         var predicate = Substitute.For<Func<string, CancellationToken, Task<bool>>>();
         var subject = new Filter<string>(predicate);
         var targetStream = Substitute.For<IOperandStream<string>>();
@@ -78,6 +78,6 @@ public class FilterTests {
         await subject.Execute("Bar", targetStream, cancellationTokenSource.Token);
 
         await predicate.Received().Invoke("Bar", cancellationTokenSource.Token);
-        await targetStream.Received().Write("Bar", cancellationTokenSource.Token);
+        await targetStream.Received().Publish("Bar", cancellationTokenSource.Token);
     }
 }

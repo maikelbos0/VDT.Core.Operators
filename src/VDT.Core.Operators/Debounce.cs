@@ -30,7 +30,7 @@ public class Debounce<TValue> : IOperator<TValue, TValue> {
         await Delay(await delayFunc(cancellationToken), cancellationToken);
 
         if (operationId == expectedOperationId) {
-            await targetStream.Write(value, cancellationToken);
+            await targetStream.Publish(value, cancellationToken);
         }
     }
 }

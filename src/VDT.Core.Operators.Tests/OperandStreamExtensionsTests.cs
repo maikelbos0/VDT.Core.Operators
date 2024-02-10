@@ -7,22 +7,22 @@ namespace VDT.Core.Operators.Tests;
 
 public class OperandStreamExtensionsTests {
     [Fact]
-    public async Task WriteToVoidOperandStream() {
+    public async Task PublishesToVoidOperandStream() {
         var subject = Substitute.For<IOperandStream<Void>>();
 
-        await subject.Write();
+        await subject.Publish();
 
-        await subject.Received().Write(Arg.Any<Void>());
+        await subject.Received().Publish(Arg.Any<Void>());
     }
 
     [Fact]
-    public async Task CancellableWriteToVoidOperandStream() {
+    public async Task CancellablePublishesToVoidOperandStream() {
         var cancellationTokenSource = new CancellationTokenSource();
         var subject = Substitute.For<IOperandStream<Void>>();
 
-        await subject.Write(cancellationTokenSource.Token);
+        await subject.Publish(cancellationTokenSource.Token);
 
-        await subject.Received().Write(Arg.Any<Void>(), cancellationTokenSource.Token);
+        await subject.Received().Publish(Arg.Any<Void>(), cancellationTokenSource.Token);
     }
 
     [Fact]

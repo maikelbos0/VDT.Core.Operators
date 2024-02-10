@@ -42,6 +42,6 @@ public class Throttle<TValue> : IOperator<TValue, TValue> {
 
         nextExpectedExecutionTime = UtcNow().AddMilliseconds(await delayFunc(cancellationToken));
 
-        await targetStream.Write(value, cancellationToken);
+        await targetStream.Publish(value, cancellationToken);
     }
 }

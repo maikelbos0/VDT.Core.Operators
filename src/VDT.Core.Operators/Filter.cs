@@ -19,7 +19,7 @@ public class Filter<TValue> : IOperator<TValue, TValue> {
 
     public async Task Execute(TValue value, IOperandStream<TValue> targetStream, CancellationToken cancellationToken) {
         if (await predicate(value, cancellationToken)) {
-            await targetStream.Write(value, cancellationToken);
+            await targetStream.Publish(value, cancellationToken);
         }
     }
 }

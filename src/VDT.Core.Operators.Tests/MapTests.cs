@@ -8,29 +8,29 @@ namespace VDT.Core.Operators.Tests;
 
 public class MapTests {
     [Fact]
-    public async Task WritesMappedObject_ValueFunction() {
+    public async Task PublishesMappedObject_ValueFunction() {
         var subject = new Map<string, string>(value => $"{value}{value}");
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
         await subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.Received().Write("FooFoo", cancellationTokenSource.Token);
+        await targetStream.Received().Publish("FooFoo", cancellationTokenSource.Token);
     }
 
     [Fact]
-    public async Task WritesMappedObject_ValueTaskFunction() {
+    public async Task PublishesMappedObject_ValueTaskFunction() {
         var subject = new Map<string, string>(value => Task.FromResult($"{value}{value}"));
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
         await subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.Received().Write("FooFoo", cancellationTokenSource.Token);
+        await targetStream.Received().Publish("FooFoo", cancellationTokenSource.Token);
     }
 
     [Fact]
-    public async Task WritesMappedObject_CancellableValueTaskFunction() {
+    public async Task PublishesMappedObject_CancellableValueTaskFunction() {
         var func = Substitute.For<Func<string, CancellationToken, Task<string>>>();
         var subject = new Map<string, string>(func);
         var targetStream = Substitute.For<IOperandStream<string>>();
@@ -41,6 +41,6 @@ public class MapTests {
         await subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
         
         await func.Received().Invoke("Foo", cancellationTokenSource.Token);
-        await targetStream.Received().Write("FooFoo", cancellationTokenSource.Token);
+        await targetStream.Received().Publish("FooFoo", cancellationTokenSource.Token);
     }
 }

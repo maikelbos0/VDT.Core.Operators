@@ -64,7 +64,7 @@ public class DebounceTests {
     }
 
     [Fact]
-    public async Task WritesLastValueInInterval() {
+    public async Task PublishesLastValueInInterval() {
         var isDelayed = true;
         var subject = new Debounce<string>(500);
         var targetStream = Substitute.For<IOperandStream<string>>();
@@ -83,12 +83,12 @@ public class DebounceTests {
 
         await Task.WhenAll(task1, task2);
 
-        await targetStream.DidNotReceive().Write("Foo", Arg.Any<CancellationToken>());
-        await targetStream.Received().Write("Bar", cancellationTokenSource.Token);
+        await targetStream.DidNotReceive().Publish("Foo", Arg.Any<CancellationToken>());
+        await targetStream.Received().Publish("Bar", cancellationTokenSource.Token);
     }
 
     [Fact]
-    public async Task WritesNewValueAfterInterval() {
+    public async Task PublishesNewValueAfterInterval() {
         var isDelayed = true;
         var subject = new Debounce<string>(500);
         var targetStream = Substitute.For<IOperandStream<string>>();
@@ -111,6 +111,6 @@ public class DebounceTests {
 
         await subject.Execute("Baz", targetStream, cancellationTokenSource.Token);
 
-        await targetStream.Received().Write("Baz", cancellationTokenSource.Token);
+        await targetStream.Received().Publish("Baz", cancellationTokenSource.Token);
     }
 }
