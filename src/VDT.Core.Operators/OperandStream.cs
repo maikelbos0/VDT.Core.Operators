@@ -57,3 +57,6 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         return targetStream;
     }
 }
+
+/// <inheritdoc/>
+public class OperandStream : OperandStream<Void> { }

@@ -1,9 +1,30 @@
 ﻿using NSubstitute;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace VDT.Core.Operators.Tests;
 
 public class OperandStreamExtensionsTests {
+    [Fact]
+    public async Task WriteToVoidOperandStream() {
+        var subject = Substitute.For<IOperandStream<Void>>();
+
+        await subject.Write();
+
+        await subject.Received().Write(Arg.Any<Void>());
+    }
+
+    [Fact]
+    public async Task CancellableWriteToVoidOperandStream() {
+        var cancellationTokenSource = new CancellationTokenSource();
+        var subject = Substitute.For<IOperandStream<Void>>();
+
+        await subject.Write(cancellationTokenSource.Token);
+
+        await subject.Received().Write(Arg.Any<Void>(), cancellationTokenSource.Token);
+    }
+
     [Fact]
     public void Filter() {
         var subject = Substitute.For<IOperandStream<string>>();
