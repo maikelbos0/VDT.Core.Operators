@@ -29,11 +29,14 @@ public static class {className} {{
     }
 
     private static string CreateMethod(INamedTypeSymbol op, IMethodSymbol constructor) {
+        var targetStreamType = ((IMethodSymbol)op.GetMembers("Execute").Single()).Parameters.Single(param => param.Name == "targetStream").Type;
+        var targetStreamValueType = ((INamedTypeSymbol)targetStreamType).TypeArguments.Single();
+
         var methodParameters = new List<string>() { "this IOperandStream<TValue> operandStream" };
         methodParameters.AddRange(constructor.Parameters.Select(param => $"{param.Type} {param.Name}"));
 
         return $@"
-//    public static IOperandStream<{op.TypeArguments.Last()}> {op.Name}<{string.Join(", ", op.TypeArguments)}>({string.Join(", ", methodParameters)})
+//    public static IOperandStream<{targetStreamValueType}> {op.Name}<{string.Join(", ", op.TypeArguments)}>({string.Join(", ", methodParameters)})
 //        => operandStream.Pipe(new {op.Name}<{string.Join(", ", op.TypeArguments)}>({string.Join("", constructor.Parameters.Select(param => param.Name))}));
 ";
     }
