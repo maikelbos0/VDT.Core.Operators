@@ -30,7 +30,7 @@ public class FilterTests {
     }
 
     [Fact]
-    public async Task DoesNotPublishWhenNotMatched_PredicateTask() {
+    public async Task DoesNotPublishWhenNotMatched_TaskPredicate() {
         var subject = new Filter<string>(value => Task.FromResult(value.StartsWith('B')));
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
@@ -41,7 +41,7 @@ public class FilterTests {
     }
 
     [Fact]
-    public async Task PublishesWhenMatched_PredicateTask() {
+    public async Task PublishesWhenMatched_TaskPredicate() {
         var subject = new Filter<string>(value => Task.FromResult(value.StartsWith('B')));
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
@@ -52,7 +52,7 @@ public class FilterTests {
     }
 
     [Fact]
-    public async Task DoesNotPublishWhenNotMatched_CancellablePredicateTask() {
+    public async Task DoesNotPublishWhenNotMatched_CancellableTaskPredicate() {
         var predicate = Substitute.For<Func<string, CancellationToken, Task<bool>>>();
         var subject = new Filter<string>(predicate);
         var targetStream = Substitute.For<IOperandStream<string>>();
@@ -67,7 +67,7 @@ public class FilterTests {
     }
 
     [Fact]
-    public async Task PublishesWhenMatched_CancellablePredicateTask() {
+    public async Task PublishesWhenMatched_CancellableTaskPredicate() {
         var predicate = Substitute.For<Func<string, CancellationToken, Task<bool>>>();
         var subject = new Filter<string>(predicate);
         var targetStream = Substitute.For<IOperandStream<string>>();
