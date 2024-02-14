@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VDT.Core.Operators", "VDT.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VDT.Core.Operators.Tests", "VDT.Core.Operators.Tests\VDT.Core.Operators.Tests.csproj", "{8031DC4B-AA64-42CB-8806-964A53D8E9CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VDT.Core.Operators.SourceGenerators", "VDT.Core.Operators.SourceGenerators\VDT.Core.Operators.SourceGenerators.csproj", "{D86AF7C5-8248-4C51-8F3E-2CCE43BBC38A}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{8031DC4B-AA64-42CB-8806-964A53D8E9CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8031DC4B-AA64-42CB-8806-964A53D8E9CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8031DC4B-AA64-42CB-8806-964A53D8E9CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D86AF7C5-8248-4C51-8F3E-2CCE43BBC38A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D86AF7C5-8248-4C51-8F3E-2CCE43BBC38A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D86AF7C5-8248-4C51-8F3E-2CCE43BBC38A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D86AF7C5-8248-4C51-8F3E-2CCE43BBC38A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

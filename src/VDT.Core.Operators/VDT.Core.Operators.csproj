@@ -36,8 +36,4 @@
 		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\VDT.Core.Operators.SourceGenerators\VDT.Core.Operators.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-	</ItemGroup>
-
 </Project>
