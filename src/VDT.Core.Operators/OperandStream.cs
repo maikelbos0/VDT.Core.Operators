@@ -57,6 +57,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         return targetStream;
     }
 
+    /// <inheritdoc/>
     public IOperandStream<TTransformedValue> Pipe<TTransformedValue, TOptions>(IOperator<TValue, TTransformedValue, TOptions> op, TOptions options) {
         var targetStream = new OperandStream<TTransformedValue>();
 
