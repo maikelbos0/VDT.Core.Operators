@@ -56,6 +56,16 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
         return targetStream;
     }
+
+    public IOperandStream<TTransformedValue> Pipe<TTransformedValue, TOptions>(IOperator<TValue, TTransformedValue, TOptions> op, TOptions options) {
+        var targetStream = new OperandStream<TTransformedValue>();
+
+        op.Initialize(targetStream, options);
+
+        Subscribe(async (value, cancellationToken) => await op.Execute(value, targetStream, cancellationToken));
+
+        return targetStream;
+    }
 }
 
 /// <inheritdoc/>

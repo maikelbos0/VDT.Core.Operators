@@ -67,4 +67,6 @@ public interface IOperandStream<TValue> {
     /// <param name="op">Operator that will publish values to the target stream</param>
     /// <returns>The target stream the supplied operator will publish transformed values to</returns>
     IOperandStream<TTransformedValue> Pipe<TTransformedValue>(IOperator<TValue, TTransformedValue> op);
+    
+    IOperandStream<TTransformedValue> Pipe<TTransformedValue, TOptions>(IOperator<TValue, TTransformedValue, TOptions> op, TOptions options);
 }
