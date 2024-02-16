@@ -17,6 +17,7 @@ public class OperandStreamMergeExtensionsTests {
 
         subject.Received().Pipe(Arg.Any<Merge<string>>(), additionalStreams);
     }
+
     [Fact]
     public void Merge_Enumerable() {
         var subject = Substitute.For<IOperandStream<string>>();
