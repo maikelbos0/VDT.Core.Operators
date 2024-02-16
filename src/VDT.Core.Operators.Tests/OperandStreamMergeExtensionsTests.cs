@@ -1,25 +1,32 @@
 ﻿using NSubstitute;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using Xunit;
 
 namespace VDT.Core.Operators.Tests;
 
 public class OperandStreamMergeExtensionsTests {
     [Fact]
-    public void Merge() {
+    public void Merge_Array() {
         var subject = Substitute.For<IOperandStream<string>>();
-        var otherStreams = new[] {
+        var additionalStreams = new[] {
             Substitute.For<IOperandStream<string>>(),
             Substitute.For<IOperandStream<string>>()
         };
 
-        var result = subject.Merge(otherStreams);
+        _ = subject.Merge(additionalStreams);
 
-        subject.Received().Subscribe((Func<string, CancellationToken, Task>)result.Publish);
-        foreach (var otherStream in otherStreams) {
-            otherStream.Received().Subscribe((Func<string, CancellationToken, Task>)result.Publish);
-        }
+        subject.Received().Pipe(Arg.Any<Merge<string>>(), additionalStreams);
+    }
+    [Fact]
+    public void Merge_Enumerable() {
+        var subject = Substitute.For<IOperandStream<string>>();
+        var additionalStreams = new List<IOperandStream<string>>() {
+            Substitute.For<IOperandStream<string>>(),
+            Substitute.For<IOperandStream<string>>()
+        };
+
+        _ = subject.Merge(additionalStreams);
+
+        subject.Received().Pipe(Arg.Any<Merge<string>>(), additionalStreams);
     }
 }
