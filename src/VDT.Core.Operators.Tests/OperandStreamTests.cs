@@ -126,4 +126,23 @@ public class OperandStreamTests {
 
         subscribeAction.Received().Invoke("Foo");
     }
+
+    [Fact]
+    public async Task PipesValuesToOperatorWithInitialization() {
+        var subject = new OperandStream<string>();
+        var op = Substitute.For<IOperator<string, string, string>>();
+        var subscribeAction = Substitute.For<Action<string>>();
+
+        op.Execute(Arg.Any<string>(), Arg.Any<IOperandStream<string>>(), Arg.Any<CancellationToken>()).Returns(callInfo => callInfo.ArgAt<IOperandStream<string>>(1).Publish(callInfo.ArgAt<string>(0)));
+
+        var result = subject.Pipe(op, "Bar");
+
+        op.Received().Initialize(result, "Bar");
+
+        result.Subscribe(subscribeAction);
+
+        await subject.Publish("Foo");
+
+        subscribeAction.Received().Invoke("Foo");
+    }
 }
