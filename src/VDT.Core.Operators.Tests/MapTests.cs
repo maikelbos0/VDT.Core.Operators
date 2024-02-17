@@ -8,7 +8,7 @@ namespace VDT.Core.Operators.Tests;
 
 public class MapTests {
     [Fact]
-    public async Task PublishesMappedObject_ValueFunction() {
+    public async Task PublishesMappedObject_Function() {
         var subject = new Map<string, string>(value => $"{value}{value}");
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
@@ -19,7 +19,7 @@ public class MapTests {
     }
 
     [Fact]
-    public async Task PublishesMappedObject_ValueTaskFunction() {
+    public async Task PublishesMappedObject_TaskFunction() {
         var subject = new Map<string, string>(value => Task.FromResult($"{value}{value}"));
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
@@ -30,7 +30,7 @@ public class MapTests {
     }
 
     [Fact]
-    public async Task PublishesMappedObject_CancellableValueTaskFunction() {
+    public async Task PublishesMappedObject_CancellableTaskFunction() {
         var func = Substitute.For<Func<string, CancellationToken, Task<string>>>();
         var subject = new Map<string, string>(func);
         var targetStream = Substitute.For<IOperandStream<string>>();

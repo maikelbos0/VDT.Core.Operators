@@ -13,7 +13,7 @@ public class Map<TValue, TTransformedValue> : IOperator<TValue, TTransformedValu
     public Map(Func<TValue, Task<TTransformedValue>> func)
         : this((value, _) => func(value)) { }
 
-    public Map(Func<TValue, CancellationToken, Task<TTransformedValue>> func) { 
+    public Map(Func<TValue, CancellationToken, Task<TTransformedValue>> func) {
         this.func = func;
     }
 

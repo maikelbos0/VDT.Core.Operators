@@ -8,12 +8,13 @@
 
 	<PropertyGroup>
 		<PackageId>VDT.Core.Operators</PackageId>
-		<Version>0.2.0</Version>
+		<Version>0.3.0</Version>
 		<Title>VDT.Core.Operators</Title>
 		<PackageIcon>icon_128.png</PackageIcon>
 		<Description>Operators for processing and transforming streams of values from a variety of sources</Description>
-		<PackageReleaseNotes>- Add void operand stream
-- Rename Write to Publish to make sense when publishing void</PackageReleaseNotes>
+		<PackageReleaseNotes>- Add merge operator
+- Add zip operators with queue and discard
+- Add extension method overloads for all operator constructors</PackageReleaseNotes>
 		<Authors>Maikel Bos</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © 2024 Maikel Bos</Copyright>
@@ -26,7 +27,7 @@
 	<PropertyGroup>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
-	
+
 	<ItemGroup>
 		<None Include="README.md" pack="true" PackagePath="." />
 		<None Include="icon_128.png" pack="true" PackagePath="." />

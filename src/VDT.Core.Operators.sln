@@ -5,7 +5,7 @@ VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VDT.Core.Operators", "VDT.Core.Operators\VDT.Core.Operators.csproj", "{F1DF7741-FF1C-476E-8572-AA26022B0123}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VDT.Core.Operators.Tests", "VDT.Core.Operators.Tests\VDT.Core.Operators.Tests.csproj", "{8031DC4B-AA64-42CB-8806-964A53D8E9CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VDT.Core.Operators.Tests", "VDT.Core.Operators.Tests\VDT.Core.Operators.Tests.csproj", "{8031DC4B-AA64-42CB-8806-964A53D8E9CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
