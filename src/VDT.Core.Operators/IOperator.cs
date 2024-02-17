@@ -20,13 +20,11 @@ public interface IOperator<TValue, TTransformedValue> {
 }
 
 /// <inheritdoc/>
-public interface IOperator<TValue, TTransformedValue, TInitializationValue> : IOperator<TValue, TTransformedValue> {
+public interface IOperator<TValue, TTransformedValue, TInitializationData> : IOperator<TValue, TTransformedValue> {
     /// <summary>
     /// Initialize the target <see cref="IOperandStream{TValue}"/>
     /// </summary>
     /// <param name="targetStream"><see cref="IOperandStream{TValue}"/> that values will be published to</param>
-    /// <param name="initializationValue">Data to be used to initialize the <paramref name="targetStream"/></param>
-    void Initialize(IOperandStream<TTransformedValue> targetStream, TInitializationValue initializationValue);
-
-    // TODO rename initializationValue / TInitializationValue
+    /// <param name="initializationData">Data to be used to initialize the <paramref name="targetStream"/></param>
+    void Initialize(IOperandStream<TTransformedValue> targetStream, TInitializationData initializationData);
 }

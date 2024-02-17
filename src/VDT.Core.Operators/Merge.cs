@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 public class Merge<TValue> : IOperator<TValue, TValue, IEnumerable<IOperandStream<TValue>>> {
-    public void Initialize(IOperandStream<TValue> targetStream, IEnumerable<IOperandStream<TValue>> otherStreams) {
+    public void Initialize(IOperandStream<TValue> targetStream, IEnumerable<IOperandStream<TValue>> initializationData) {
         var subscriber = (Func<TValue, CancellationToken, Task>)targetStream.Publish;
 
-        foreach (var otherStream in otherStreams) {
-            otherStream.Subscribe(subscriber);
+        foreach (var operandStream in initializationData) {
+            operandStream.Subscribe(subscriber);
         }
     }
 

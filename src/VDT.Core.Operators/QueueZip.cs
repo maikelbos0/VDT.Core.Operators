@@ -9,8 +9,8 @@ public class QueueZip<TValue, TAdditionalValue> : IOperator<TValue, (TValue, TAd
     private readonly Queue<TValue> values = new();
     private readonly Queue<TAdditionalValue> additionalValues = new();
 
-    public void Initialize(IOperandStream<(TValue, TAdditionalValue)> targetStream, IOperandStream<TAdditionalValue> initializationValue) {
-        initializationValue.Subscribe(async (additionalValue, cancellationToken) => {
+    public void Initialize(IOperandStream<(TValue, TAdditionalValue)> targetStream, IOperandStream<TAdditionalValue> initializationData) {
+        initializationData.Subscribe(async (additionalValue, cancellationToken) => {
             TValue? value = default;
 
             lock (queueLock) {

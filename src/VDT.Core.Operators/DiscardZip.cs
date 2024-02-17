@@ -10,8 +10,8 @@ public class DiscardZip<TValue, TAdditionalValue> : IOperator<TValue, (TValue, T
     private ValueReference<TValue>? valueReference;
     private ValueReference<TAdditionalValue>? additionalValueReference;
 
-    public void Initialize(IOperandStream<(TValue, TAdditionalValue)> targetStream, IOperandStream<TAdditionalValue> initializationValue) {
-        initializationValue.Subscribe(async (additionalValue, cancellationToken) => {
+    public void Initialize(IOperandStream<(TValue, TAdditionalValue)> targetStream, IOperandStream<TAdditionalValue> initializationData) {
+        initializationData.Subscribe(async (additionalValue, cancellationToken) => {
             ValueReference<TValue>? valueReference = null;
 
             lock (referenceLock) {

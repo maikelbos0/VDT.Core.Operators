@@ -72,9 +72,9 @@ public interface IOperandStream<TValue> {
     /// Pass values published to this stream to the supplied operator for transformation and publish them to a target stream
     /// </summary>
     /// <typeparam name="TTransformedValue">Type of the value after transformation</typeparam>
-    /// <typeparam name="TOptions">Type of the options the operator accepts for initialization</typeparam>
+    /// <typeparam name="TInitializationData">Type of the initialization data the operator accepts for initialization</typeparam>
     /// <param name="op">Operator that will publish values to the target stream</param>
-    /// <param name="options">Options for the operator to initialize the target stream with</param>
+    /// <param name="initializationData">Data for the operator to initialize the target stream with</param>
     /// <returns>The target stream the supplied operator will publish transformed values to</returns>
-    IOperandStream<TTransformedValue> Pipe<TTransformedValue, TOptions>(IOperator<TValue, TTransformedValue, TOptions> op, TOptions options);
+    IOperandStream<TTransformedValue> Pipe<TTransformedValue, TInitializationData>(IOperator<TValue, TTransformedValue, TInitializationData> op, TInitializationData initializationData);
 }
