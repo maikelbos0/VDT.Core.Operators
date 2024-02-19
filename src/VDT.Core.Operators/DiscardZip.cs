@@ -3,6 +3,11 @@ using System.Threading.Tasks;
 
 namespace VDT.Core.Operators;
 
+/// <summary>
+/// Operator that publishes a tuple of the received values of two different <see cref="IOperandStream{TValue}"/> instances, discarding extra values received before a new tuple could be published
+/// </summary>
+/// <typeparam name="TValue">Type of received values from the first <see cref="IOperandStream{TValue}"/></typeparam>
+/// <typeparam name="TAdditionalValue">Type of received values from the second <see cref="IOperandStream{TValue}"/></typeparam>
 public class DiscardZip<TValue, TAdditionalValue> : IOperator<TValue, (TValue, TAdditionalValue), IOperandStream<TAdditionalValue>> {
     private record class ValueReference<T>(T Value);
 
@@ -10,6 +15,9 @@ public class DiscardZip<TValue, TAdditionalValue> : IOperator<TValue, (TValue, T
     private ValueReference<TValue>? valueReference;
     private ValueReference<TAdditionalValue>? additionalValueReference;
 
+    // TODO add option to use first or last value received when zipping
+
+    /// <inheritdoc/>
     public void Initialize(IOperandStream<(TValue, TAdditionalValue)> targetStream, IOperandStream<TAdditionalValue> initializationData) {
         initializationData.Subscribe(async (additionalValue, cancellationToken) => {
             ValueReference<TValue>? valueReference = null;
@@ -30,6 +38,7 @@ public class DiscardZip<TValue, TAdditionalValue> : IOperator<TValue, (TValue, T
         });
     }
 
+    /// <inheritdoc/>
     public async Task Execute(TValue value, IOperandStream<(TValue, TAdditionalValue)> targetStream, CancellationToken cancellationToken) {
         ValueReference<TAdditionalValue>? additionalValueReference = null;
 
