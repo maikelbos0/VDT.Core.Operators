@@ -5,7 +5,7 @@
 /// </summary>
 public static class OperandStreamDiscardZipExtensions {
     /// <summary>
-    /// Publishes a tuple of the values received from <paramref name="operandStream"/> and <paramref name="additionalStream"/>, discarding extra values received before a new tuple could be published
+    /// Publish tuples of the values received from <paramref name="operandStream"/> and <paramref name="additionalStream"/>, discarding extra values received before a new tuple could be published
     /// </summary>
     /// <typeparam name="TValue">Type of values received from <paramref name="operandStream"/></typeparam>
     /// <typeparam name="TAdditionalValue">Type of values received from <paramref name="additionalStream"/></typeparam>
