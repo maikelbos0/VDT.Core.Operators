@@ -7,6 +7,7 @@ namespace VDT.Core.Operators;
 
 public class Group<TValue, TKey> : IOperator<TValue, List<TValue>> {
     private readonly Func<TValue, CancellationToken, Task<TKey>> keySelector;
+    private readonly IEqualityComparer<TKey> keyComparer;
 
     private readonly object groupLock = new();
     private TKey previousKey;
@@ -14,12 +15,22 @@ public class Group<TValue, TKey> : IOperator<TValue, List<TValue>> {
 
     public Group(Func<TValue, TKey> keySelector)
         : this((value, _) => Task.FromResult(keySelector(value))) { }
+    
+    public Group(Func<TValue, TKey> keySelector, IEqualityComparer<TKey> keyComparer)
+        : this((value, _) => Task.FromResult(keySelector(value)), keyComparer) { }
 
     public Group(Func<TValue, Task<TKey>> keySelector)
         : this((value, _) => keySelector(value)) { }
+    
+    public Group(Func<TValue, Task<TKey>> keySelector, IEqualityComparer<TKey> keyComparer)
+        : this((value, _) => keySelector(value), keyComparer) { }
 
-    public Group(Func<TValue, CancellationToken, Task<TKey>> keySelector) {
+    public Group(Func<TValue, CancellationToken, Task<TKey>> keySelector) 
+        : this(keySelector, EqualityComparer<TKey>.Default) { }
+
+    public Group(Func<TValue, CancellationToken, Task<TKey>> keySelector, IEqualityComparer<TKey> keyComparer) {
         this.keySelector = keySelector;
+        this.keyComparer = keyComparer;
     }
 
     public async Task Execute(TValue value, IOperandStream<List<TValue>> targetStream, CancellationToken cancellationToken) {
@@ -27,8 +38,7 @@ public class Group<TValue, TKey> : IOperator<TValue, List<TValue>> {
         List<TValue>? valuesToPublish = null;
 
         lock (groupLock) {
-            // TODO use supplied IEqualityComparer<TKey> ?? EqualityComparer<TKey>.Default
-            if (Equals(previousKey, key)) {
+            if (keyComparer.Equals(previousKey, key)) {
                 previousValues.Add(value);
                 return;
             }
