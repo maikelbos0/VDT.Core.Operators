@@ -8,10 +8,10 @@ using Xunit;
 
 namespace VDT.Core.Operators.Tests;
 
-public class GroupTests {
+public class GroupByTests {
     [Fact]
     public async Task GroupsByKeySelector_Function() {
-        var subject = new Group<string, char>(value => value.FirstOrDefault());
+        var subject = new GroupBy<string, char>(value => value.FirstOrDefault());
         var targetStream = Substitute.For<IOperandStream<List<string>>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
@@ -25,7 +25,7 @@ public class GroupTests {
     [Fact]
     public async Task UsesEqualityComparer_Function() {
         var keyComparer = Substitute.For<IEqualityComparer<char>>();
-        var subject = new Group<string, char>(value => value.FirstOrDefault(), keyComparer);
+        var subject = new GroupBy<string, char>(value => value.FirstOrDefault(), keyComparer);
         var targetStream = Substitute.For<IOperandStream<List<string>>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
@@ -42,7 +42,7 @@ public class GroupTests {
 
     [Fact]
     public async Task GroupsByKeySelector_TaskFunction() {
-        var subject = new Group<string, char>(value => Task.FromResult(value.FirstOrDefault()));
+        var subject = new GroupBy<string, char>(value => Task.FromResult(value.FirstOrDefault()));
         var targetStream = Substitute.For<IOperandStream<List<string>>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
@@ -56,7 +56,7 @@ public class GroupTests {
     [Fact]
     public async Task UsesEqualityComparer_TaskFunction() {
         var keyComparer = Substitute.For<IEqualityComparer<char>>();
-        var subject = new Group<string, char>(value => Task.FromResult(value.FirstOrDefault()), keyComparer);
+        var subject = new GroupBy<string, char>(value => Task.FromResult(value.FirstOrDefault()), keyComparer);
         var targetStream = Substitute.For<IOperandStream<List<string>>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
@@ -74,7 +74,7 @@ public class GroupTests {
     [Fact]
     public async Task GroupsByKeySelector_CancellableTaskFunction() {
         var func = Substitute.For<Func<string, CancellationToken, Task<char>>>();
-        var subject = new Group<string, char>(func);
+        var subject = new GroupBy<string, char>(func);
         var targetStream = Substitute.For<IOperandStream<List<string>>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
@@ -92,7 +92,7 @@ public class GroupTests {
     public async Task UsesEqualityComparer_CancellableTaskFunction() {
         var func = Substitute.For<Func<string, CancellationToken, Task<char>>>();
         var keyComparer = Substitute.For<IEqualityComparer<char>>();
-        var subject = new Group<string, char>(func, keyComparer);
+        var subject = new GroupBy<string, char>(func, keyComparer);
         var targetStream = Substitute.For<IOperandStream<List<string>>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
