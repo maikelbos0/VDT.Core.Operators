@@ -5,11 +5,11 @@ using Xunit;
 
 namespace VDT.Core.Operators.Tests;
 
-public class DiscardZipTests {
+public class ZipTests {
     [Fact]
     public async Task DoesNotPublishWithoutValue() {
         var additionalStream = new OperandStream<string>();
-        var subject = new DiscardZip<string, string>();
+        var subject = new Zip<string, string>();
         var targetStream = Substitute.For<IOperandStream<(string, string)>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
@@ -23,7 +23,7 @@ public class DiscardZipTests {
     [Fact]
     public async Task DoesNotPublishWithoutAdditionalValue() {
         var additionalStream = new OperandStream<string>();
-        var subject = new DiscardZip<string, string>();
+        var subject = new Zip<string, string>();
         var targetStream = Substitute.For<IOperandStream<(string, string)>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
@@ -37,7 +37,7 @@ public class DiscardZipTests {
     [Fact]
     public async Task PublishesWhenReceivingValueSecond() {
         var additionalStream = new OperandStream<string>();
-        var subject = new DiscardZip<string, string>();
+        var subject = new Zip<string, string>();
         var targetStream = Substitute.For<IOperandStream<(string, string)>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
@@ -52,7 +52,7 @@ public class DiscardZipTests {
     [Fact]
     public async Task PublishesWhenReceivingAdditionalValueSecond() {
         var additionalStream = new OperandStream<string>();
-        var subject = new DiscardZip<string, string>();
+        var subject = new Zip<string, string>();
         var targetStream = Substitute.For<IOperandStream<(string, string)>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
@@ -67,7 +67,7 @@ public class DiscardZipTests {
     [Fact]
     public async Task DiscardsOldValue() {
         var additionalStream = new OperandStream<string>();
-        var subject = new DiscardZip<string, string>();
+        var subject = new Zip<string, string>();
         var targetStream = Substitute.For<IOperandStream<(string, string)>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
@@ -84,7 +84,7 @@ public class DiscardZipTests {
     [Fact]
     public async Task DiscardsOldAdditionalValue() {
         var additionalStream = new OperandStream<string>();
-        var subject = new DiscardZip<string, string>();
+        var subject = new Zip<string, string>();
         var targetStream = Substitute.For<IOperandStream<(string, string)>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
