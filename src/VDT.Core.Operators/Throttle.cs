@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 /// <summary>
-/// Operator that pauses at least the specified delay in between publishing values, discarding older queued values when a new value is received while awaiting the delay
+/// Operator that pauses at least the specified delay in between publishing values, discarding older values when a new value is received while awaiting the delay
 /// </summary>
 /// <typeparam name="TValue">Type of value to throttle</typeparam>
 public class Throttle<TValue> : IOperator<TValue, TValue> {
     private readonly Func<CancellationToken, Task<int>> delayFunc;
     private int operationId = 0;
-    private DateTime nextExpectedExecutionTime = DateTime.MinValue;
+    private DateTime nextPublishTime = DateTime.MinValue;
 
     internal Func<int, CancellationToken, Task> Delay { get; set; } = Task.Delay;
     internal Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
@@ -48,7 +48,7 @@ public class Throttle<TValue> : IOperator<TValue, TValue> {
     /// <inheritdoc/>
     public async Task Execute(TValue value, IOperandStream<TValue> targetStream, CancellationToken cancellationToken) {
         var now = UtcNow();
-        var requiredDelayInMilliseconds = (nextExpectedExecutionTime - now).TotalMilliseconds;
+        var requiredDelayInMilliseconds = (nextPublishTime - now).TotalMilliseconds;
 
         if (requiredDelayInMilliseconds > 0) {
             // Since Interlocked.Increment wraps, this will throttle properly until 2^32 operations occur in the delay
@@ -61,7 +61,7 @@ public class Throttle<TValue> : IOperator<TValue, TValue> {
             }
         }
 
-        nextExpectedExecutionTime = UtcNow().AddMilliseconds(await delayFunc(cancellationToken));
+        nextPublishTime = UtcNow().AddMilliseconds(await delayFunc(cancellationToken));
 
         await targetStream.Publish(value, cancellationToken);
     }

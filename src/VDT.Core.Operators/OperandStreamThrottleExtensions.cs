@@ -9,7 +9,7 @@ namespace VDT.Core.Operators;
 /// </summary>
 public static class OperandStreamThrottleExtensions {
     /// <summary>
-    /// Pause at least the specified delay in between publishing values, discarding older queued values when a new value is received while awaiting the delay
+    /// Pause at least the specified delay in between publishing values, discarding older values when a new value is received while awaiting the delay
     /// </summary>
     /// <typeparam name="TValue">Type of value to throttle</typeparam>
     /// <param name="operandStream"><see cref="IOperandStream{TValue}"/> that will be subscribed to</param>
@@ -19,7 +19,7 @@ public static class OperandStreamThrottleExtensions {
         => operandStream.Pipe(new Throttle<TValue>(delayInMilliseconds));
 
     /// <summary>
-    /// Pause at least the specified delay in between publishing values, discarding older queued values when a new value is received while awaiting the delay
+    /// Pause at least the specified delay in between publishing values, discarding older values when a new value is received while awaiting the delay
     /// </summary>
     /// <typeparam name="TValue">Type of value to throttle</typeparam>
     /// <param name="operandStream"><see cref="IOperandStream{TValue}"/> that will be subscribed to</param>
@@ -29,7 +29,7 @@ public static class OperandStreamThrottleExtensions {
         => operandStream.Pipe(new Throttle<TValue>(delayFunc));
 
     /// <summary>
-    /// Pause at least the specified delay in between publishing values, discarding older queued values when a new value is received while awaiting the delay
+    /// Pause at least the specified delay in between publishing values, discarding older values when a new value is received while awaiting the delay
     /// </summary>
     /// <typeparam name="TValue">Type of value to throttle</typeparam>
     /// <param name="operandStream"><see cref="IOperandStream{TValue}"/> that will be subscribed to</param>
@@ -39,7 +39,7 @@ public static class OperandStreamThrottleExtensions {
         => operandStream.Pipe(new Throttle<TValue>(delayFunc));
 
     /// <summary>
-    /// Pause at least the specified delay in between publishing values, discarding older queued values when a new value is received while awaiting the delay
+    /// Pause at least the specified delay in between publishing values, discarding older values when a new value is received while awaiting the delay
     /// </summary>
     /// <typeparam name="TValue">Type of value to throttle</typeparam>
     /// <param name="operandStream"><see cref="IOperandStream{TValue}"/> that will be subscribed to</param>
