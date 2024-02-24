@@ -5,63 +5,66 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 /// <summary>
-/// Operator that pauses at least the specified delay in between publishing values, discarding older values when a new value is received while awaiting the delay
+/// Operator that pauses at least the specified delay in between publishing values, queueing received values
 /// </summary>
 /// <typeparam name="TValue">Type of value to throttle</typeparam>
-public class Throttle<TValue> : IOperator<TValue, TValue> {
+public class QueueThrottle<TValue> : IOperator<TValue, TValue> {
     private readonly Func<CancellationToken, Task<int>> delayFunc;
-    private int operationId = 0;
+    private readonly object nextPublishTimeLock = new();
     private DateTime nextPublishTime = DateTime.MinValue;
 
     internal Func<int, CancellationToken, Task> Delay { get; set; } = Task.Delay;
     internal Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
 
     /// <summary>
-    /// Create a throttle operator
+    /// Create a queued throttle operator
     /// </summary>
     /// <param name="delayInMilliseconds">Time in milliseconds to wait in between publishing values</param>
-    public Throttle(int delayInMilliseconds)
+    public QueueThrottle(int delayInMilliseconds)
         : this(_ => Task.FromResult(delayInMilliseconds)) { }
 
     /// <summary>
-    /// Create a throttle operator
+    /// Create a queued throttle operator
     /// </summary>
     /// <param name="delayFunc">Method that provides the time in milliseconds to wait in between publishing values</param>
-    public Throttle(Func<int> delayFunc)
+    public QueueThrottle(Func<int> delayFunc)
         : this(_ => Task.FromResult(delayFunc())) { }
 
     /// <summary>
-    /// Create a throttle operator
+    /// Create a queued throttle operator
     /// </summary>
     /// <param name="delayFunc">Method that provides the time in milliseconds to wait in between publishing values</param>
-    public Throttle(Func<Task<int>> delayFunc)
+    public QueueThrottle(Func<Task<int>> delayFunc)
         : this(_ => delayFunc()) { }
 
     /// <summary>
-    /// Create a throttle operator
+    /// Create a queued throttle operator
     /// </summary>
     /// <param name="delayFunc">Method that provides the time in milliseconds to wait in between publishing values</param>
-    public Throttle(Func<CancellationToken, Task<int>> delayFunc) {
+    public QueueThrottle(Func<CancellationToken, Task<int>> delayFunc) {
         this.delayFunc = delayFunc;
     }
 
     /// <inheritdoc/>
     public async Task Execute(TValue value, IOperandStream<TValue> targetStream, CancellationToken cancellationToken) {
         var now = UtcNow();
-        var requiredDelayInMilliseconds = (nextPublishTime - now).TotalMilliseconds;
+        var delayInMilliseconds = await delayFunc(cancellationToken);
+        double requiredDelayInMilliseconds;
 
-        if (requiredDelayInMilliseconds > 0) {
-            // Since Interlocked.Increment wraps, this will throttle properly until 2^32 operations occur in the delay
-            var expectedOperationId = Interlocked.Increment(ref operationId);
+        lock (nextPublishTimeLock) {
+            requiredDelayInMilliseconds = (nextPublishTime - now).TotalMilliseconds;
 
-            await Delay((int)requiredDelayInMilliseconds, cancellationToken);
-
-            if (operationId != expectedOperationId) {
-                return;
+            if (requiredDelayInMilliseconds > 0) {
+                nextPublishTime = nextPublishTime.AddMilliseconds(delayInMilliseconds);
+            }
+            else {
+                nextPublishTime = now.AddMilliseconds(delayInMilliseconds);
             }
         }
 
-        nextPublishTime = UtcNow().AddMilliseconds(await delayFunc(cancellationToken));
+        if (requiredDelayInMilliseconds > 0) {
+            await Delay((int)requiredDelayInMilliseconds, cancellationToken);
+        }
 
         await targetStream.Publish(value, cancellationToken);
     }

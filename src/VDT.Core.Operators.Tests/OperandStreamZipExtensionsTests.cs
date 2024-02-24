@@ -3,14 +3,14 @@ using Xunit;
 
 namespace VDT.Core.Operators.Tests;
 
-public class OperandStreamDiscardZipExtensionsTests {
+public class OperandStreamZipExtensionsTests {
     [Fact]
-    public void DiscardZip() {
+    public void Zip() {
         var subject = Substitute.For<IOperandStream<string>>();
         var additionalStream = Substitute.For<IOperandStream<string>>();
 
-        _ = subject.DiscardZip(additionalStream);
+        _ = subject.Zip(additionalStream);
 
-        subject.Received().Pipe(Arg.Any<DiscardZip<string, string>>(), additionalStream);
+        subject.Received().Pipe(Arg.Any<Zip<string, string>>(), additionalStream);
     }
 }

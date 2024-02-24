@@ -8,7 +8,7 @@ namespace VDT.Core.Operators;
 /// </summary>
 /// <typeparam name="TValue">Type of received values from the first <see cref="IOperandStream{TValue}"/></typeparam>
 /// <typeparam name="TAdditionalValue">Type of received values from the second <see cref="IOperandStream{TValue}"/></typeparam>
-public class DiscardZip<TValue, TAdditionalValue> : IOperator<TValue, (TValue, TAdditionalValue), IOperandStream<TAdditionalValue>> {
+public class Zip<TValue, TAdditionalValue> : IOperator<TValue, (TValue, TAdditionalValue), IOperandStream<TAdditionalValue>> {
     private record class ValueReference<T>(T Value);
 
     private readonly object referenceLock = new();
