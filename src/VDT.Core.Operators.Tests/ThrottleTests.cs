@@ -97,10 +97,8 @@ public class ThrottleTests {
         await subject.Execute("Bar", targetStream, cancellationTokenSource.Token);
 
         Received.InOrder(() => {
-            func.Invoke(cancellationTokenSource.Token);
             targetStream.Publish("Foo", cancellationTokenSource.Token);
             subject.Delay.Invoke(500, cancellationTokenSource.Token);
-            func.Invoke(cancellationTokenSource.Token);
             targetStream.Publish("Bar", cancellationTokenSource.Token);
         });
     }

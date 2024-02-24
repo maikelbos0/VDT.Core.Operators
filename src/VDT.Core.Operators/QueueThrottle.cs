@@ -8,8 +8,7 @@ namespace VDT.Core.Operators;
 /// Operator that pauses at least the specified delay in between publishing values, queueing received values
 /// </summary>
 /// <typeparam name="TValue">Type of value to throttle</typeparam>
-public class QueueThrottle
-    <TValue> : IOperator<TValue, TValue> {
+public class QueueThrottle<TValue> : IOperator<TValue, TValue> {
     private readonly Func<CancellationToken, Task<int>> delayFunc;
     private readonly object nextPublishTimeLock = new();
     private DateTime nextPublishTime = DateTime.MinValue;
