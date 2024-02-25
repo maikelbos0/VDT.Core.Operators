@@ -7,7 +7,7 @@ namespace VDT.Core.Operators;
 /// <summary>
 /// Represents a stream of values that can be subscribed to and transformed
 /// </summary>
-/// <typeparam name="TValue">Type of the values</typeparam>
+/// <typeparam name="TValue">Type of value</typeparam>
 public interface IOperandStream<TValue> {
     /// <summary>
     /// Publish a value to this stream
