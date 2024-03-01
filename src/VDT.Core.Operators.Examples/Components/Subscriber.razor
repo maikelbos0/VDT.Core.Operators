@@ -1,0 +1,17 @@
+﻿@using System.Text.Json
+@typeparam TValue
+
+@if (Values.Any()) {
+    <pre class="bg-light p-2">
+        @JsonSerializer.Serialize(Values, new JsonSerializerOptions() { WriteIndented = true })
+    </pre>
+}
+
+@code {
+    private List<TValue> Values { get; set; } = new();
+
+    public void Subscribe(TValue value) {
+        Values.Add(value);
+        StateHasChanged();
+    }
+}
