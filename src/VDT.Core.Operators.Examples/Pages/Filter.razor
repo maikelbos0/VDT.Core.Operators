@@ -4,8 +4,8 @@
 
 <p>
     Filter is an operator that publishes only those values to the target <code>IOperandStream&gt;TValue&lt;</code> that match the provided predicate. The
-    predicate can be synchronous or asynchronous with an optional <code>CancellationToken</code>. Below  example applies a filter to the entered values such
-    that they must contain a specific text and must not contain a different text.
+    predicate can be synchronous or asynchronous. Below  example applies a filter to the entered values such that they must contain a specific text and must
+    not contain a different text.
 </p>
 
 <div class="row">
@@ -25,13 +25,11 @@
     </div>
 
     <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
-        <button class="btn btn-primary w-100" @onclick="Publish">Publish</button>
+        <button class="btn btn-primary w-100" @onclick="async () => await valueStream.Publish(Value)">Publish</button>
     </div>
 </div>
 
-<div>
-    <Subscriber TValue="string" @ref="subscriber" />
-</div>
+<Subscriber TValue="string" @ref="subscriber" />
 
 @code {
     private readonly IOperandStream<string> valueStream = new OperandStream<string>();
@@ -45,9 +43,5 @@
         if (firstRender) {
             valueStream.Filter(x => x.Contains(MustContain) && !x.Contains(MustNotContain)).Subscribe(subscriber.Subscribe);
         }
-    }
-
-    private async Task Publish() {
-        await valueStream.Publish(Value);
     }
 }
