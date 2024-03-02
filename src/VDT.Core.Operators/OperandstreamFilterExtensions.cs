@@ -9,7 +9,7 @@ namespace VDT.Core.Operators;
 /// </summary>
 public static class OperandstreamFilterExtensions {
     /// <summary>
-    /// Publish only those values received from the <paramref name="operandStream"/> that match the <paramref name="predicate"/> to the created <see cref="IOperandStream{TValue}"/>
+    /// Publish only those received values that match the <paramref name="predicate"/>
     /// </summary>
     /// <typeparam name="TValue">Type of value to filter</typeparam>
     /// <param name="operandStream"><see cref="IOperandStream{TValue}"/> that will be subscribed to</param>
@@ -19,7 +19,7 @@ public static class OperandstreamFilterExtensions {
         => operandStream.Pipe(new Filter<TValue>(predicate));
 
     /// <summary>
-    /// Publish only those values received from the <paramref name="operandStream"/> that match the <paramref name="predicate"/> to the created <see cref="IOperandStream{TValue}"/>
+    /// Publish only those received values that match the <paramref name="predicate"/>
     /// </summary>
     /// <typeparam name="TValue">Type of value to filter</typeparam>
     /// <param name="operandStream"><see cref="IOperandStream{TValue}"/> that will be subscribed to</param>
@@ -29,7 +29,7 @@ public static class OperandstreamFilterExtensions {
         => operandStream.Pipe(new Filter<TValue>(predicate));
 
     /// <summary>
-    /// Publish only those values received from the <paramref name="operandStream"/> that match the <paramref name="predicate"/> to the created <see cref="IOperandStream{TValue}"/>
+    /// Publish only those received values that match the <paramref name="predicate"/>
     /// </summary>
     /// <typeparam name="TValue">Type of value to filter</typeparam>
     /// <param name="operandStream"><see cref="IOperandStream{TValue}"/> that will be subscribed to</param>

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 /// <summary>
-/// Operator that publishes only those values to the target <see cref="IOperandStream{TValue}"/> that match the provided predicate
+/// Operator that publishes only those received values that match the provided predicate
 /// </summary>
 /// <typeparam name="TValue">Type of value to filter</typeparam>
 public class Filter<TValue> : IOperator<TValue, TValue> {
