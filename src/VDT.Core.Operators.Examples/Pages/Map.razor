@@ -1,0 +1,34 @@
+﻿@page "/Map"
+
+<h1>Map</h1>
+
+<p>
+    Map is an operator that publishes values transformed from the received type into the desired type by the supplied transformation method. The map method can
+    be synchronous or asynchronous. Below example takes the input value strings and reverses them.
+</p>
+
+<div class="row">
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="value" class="form-label">Value</label>
+        <input type="text" class="form-control" id="value" @bind-value="@Value" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+        <button class="btn btn-primary w-100" @onclick="async () => await valueStream.Publish(Value)">Publish</button>
+    </div>
+</div>
+
+<Subscriber TValue="string" @ref="subscriber" />
+
+@code {
+    private readonly IOperandStream<string> valueStream = new OperandStream<string>();
+    private Subscriber<string> subscriber = null!;
+
+    private string Value { get; set; } = "Value";
+
+    protected override void OnAfterRender(bool firstRender) {
+        if (firstRender) {
+            valueStream.Map(x => string.Join("", x.Reverse())).Subscribe(subscriber.Subscribe);
+        }
+    }
+}
