@@ -3,7 +3,7 @@
 
 @if (Values.Any()) {
     <pre class="bg-light p-2">
-        @JsonSerializer.Serialize(Values, new JsonSerializerOptions() { WriteIndented = true })
+        @JsonSerializer.Serialize(Values, new JsonSerializerOptions() { WriteIndented = true, IncludeFields = true })
     </pre>
 }
 
