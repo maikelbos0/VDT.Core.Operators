@@ -4,10 +4,10 @@
 
 <p>
     VDT.Core.Operators offers operators that process streams of published values from operand streams, allowing you to subscribe to the output stream for
-    handling any sorts of events in a streamlined way. To use them, create operand streams of the types you want to process, apply operators to those streams
-    and subscribe to the results. Conceptually this is similar to piping observables, except an operand stream doesn't own the data it publishes - it's merely
-    a conduit that's used for publishing, piping and subscribing. Below example uses a series of operators to ensure string values don't get published more
-    than once every half a second and can be parsed as integers before subscribing to the resulting integer stream.
+    handling any sorts of events in a streamlined way. Create operand streams of the types you want to process, apply operators to those streams and subscribe
+    to the results. Conceptually this is similar to piping observables, except an operand stream doesn't own the data it publishes - it's merely a conduit
+    that's used for publishing, piping and subscribing. Below example uses a series of operators to ensure string values don't get published more than once
+    every half a second and can be parsed as integers before subscribing to the resulting integer stream.
 </p>
 
 <pre><code>
