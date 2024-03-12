@@ -7,7 +7,7 @@ namespace VDT.Core.Operators;
 /// </summary>
 public static class OperandStreamIterateExtensions {
     /// <summary>
-    /// Iterate over received values of <see cref="IEnumerable{T}"/> of <typeparamref name="TValue"/> and publish each value
+    /// Iterate over received values of <see cref="IEnumerable{T}"/> of <typeparamref name="TValue"/> and publish each item
     /// </summary>
     /// <typeparam name="TValue">Type of values</typeparam>
     /// <param name="operandStream"><see cref="IOperandStream{TValue}"/> that will be subscribed to</param>

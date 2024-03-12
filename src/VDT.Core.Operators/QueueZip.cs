@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 /// <summary>
-/// Operator that publishes tuples of the received values of two different <see cref="IOperandStream{TValue}"/> instances, queueing values received until a new tuple could be published
+/// Operator that publishes tuples of the received values of two different <see cref="IOperandStream{TValue}"/> instances, queueing values received until a new tuple can be published
 /// </summary>
 /// <typeparam name="TValue">Type of received values from the first <see cref="IOperandStream{TValue}"/></typeparam>
 /// <typeparam name="TAdditionalValue">Type of received values from the second <see cref="IOperandStream{TValue}"/></typeparam>
