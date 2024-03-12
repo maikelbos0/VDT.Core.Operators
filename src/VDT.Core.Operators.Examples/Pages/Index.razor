@@ -1,0 +1,39 @@
+﻿@page "/"
+
+<h1>Home</h1>
+
+<p>
+    VDT.Core.Operators offers operators that process streams of published values from operand streams, allowing you to subscribe to the output stream for
+    handling any sorts of events in a streamlined way. Create operand streams of the types you want to process, apply operators to those streams and subscribe
+    to the results. Conceptually this is similar to piping observables, except an operand stream doesn't own the data it publishes - it's merely a conduit
+    that's used for publishing, piping and subscribing. Below example uses a series of operators to ensure string values don't get published more than once
+    every half a second and can be parsed as integers before subscribing to the resulting integer stream.
+</p>
+
+<pre><code>
+&lt;input type="text" @@oninput="async args => await valueStream.Publish(args.Value!.ToString()!)" /&gt;
+
+@@code {
+    private readonly IOperandStream&lt;string&gt; valueStream = new OperandStream&lt;string&gt;();
+
+    protected override void OnAfterRender(bool firstRender) {
+        if (firstRender) {
+            valueStream
+                .Debounce(500)
+                .Map(value => new { IsValid = int.TryParse(value, out var result), Result = result })
+                .Filter(value => value.IsValid)
+                .Map(value => value.Result)
+                .Subscribe(value => {
+                    // Handle received integer values
+                });
+        }
+    }
+}
+</code></pre>
+
+<p>
+    Although many common operators are available out of the box, it is simple to create your own by implementing either
+    <code>IOperator&lt;TValue, TTransformedValue&gt;</code> to transform values without any initialization, or
+    <code>IOperator&lt;TValue, TTransformedValue, TInitializationData&gt;</code> to add an initialization method with data to the operator. For ease of use,
+    you can then also create extension methods for <code>IOperandStream&lt;TValue&lt;</code> that pipes values through your operator to the target stream.
+</p>

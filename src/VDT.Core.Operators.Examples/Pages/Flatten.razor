@@ -1,0 +1,55 @@
+﻿@page "/Flatten"
+
+<h1>Flatten</h1>
+
+<p>
+    Flatten is an operation that subscribes to an <code>IOperandStream&lt;IOperandStream&lt;TValue&gt;&gt;</code> and publishes values of <code>TValue</code>.
+    Below example allows you to publish streams that publish a provided value each provided period in a loop.
+</p>
+
+<div class="row">
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="value" class="form-label">Value</label>
+        <input type="text" class="form-control" id="value" @bind-value="@Value" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="periodInMilliseconds" class="form-label">Period in milliseconds</label>
+        <input type="text" class="form-control" id="periodInMilliseconds" @bind-value="@PeriodInMilliseconds" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+        <button class="btn btn-primary w-100" @onclick="PublishValueStream">Publish new stream</button>
+    </div>
+</div>
+
+<Subscriber TValue="string" @ref="subscriber" />
+
+@code {
+    private readonly IOperandStream<IOperandStream<string>> valueStreamStream = new OperandStream<IOperandStream<string>>();
+    private Subscriber<string> subscriber = null!;
+
+    private string Value { get; set; } = "Value";
+    private int PeriodInMilliseconds { get; set; } = 2000;
+
+    protected override void OnAfterRender(bool firstRender) {
+        if (firstRender) {
+            valueStreamStream.Flatten().Subscribe(subscriber.Subscribe);
+        }
+    }
+
+    public void PublishValueStream() {
+        var valueStream = new OperandStream<string>();
+
+        valueStreamStream.Publish(valueStream);
+
+        _ = PublishEndlessly(valueStream, Value, PeriodInMilliseconds);
+    }
+
+    public async Task PublishEndlessly(IOperandStream<string> valueStream, string value, int periodInMilliseconds) {
+        while (true) {
+            await Task.Delay(periodInMilliseconds);
+            await valueStream.Publish(value);
+        }
+    }
+}

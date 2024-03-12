@@ -1,0 +1,37 @@
+﻿@page "/Debounce"
+
+<h1>Debounce</h1>
+
+<p>
+    Debounce is an operator that publishes only the last value received in succession after a specified delay, discarding those values received while the delay
+    had not finished. The delay can be directly specified, or can be the result of a supplied synchronous or asynchronous function to allow you to redetermine
+    the delay for each received value. It can be used to stop an event from firing multiple times in quick succession, such as triggering a search request when
+    a user types something into a search box.
+</p>
+
+<div class="row">
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="value" class="form-label">Value</label>
+        <input type="text" class="form-control" id="value" @oninput="async args => await valueStream.Publish(args.Value!.ToString()!)" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="delayInMilliseconds" class="form-label">Delay in milliseconds</label>
+        <input type="text" class="form-control" id="delayInMilliseconds" @bind-value="@DelayInMilliseconds" />
+    </div>
+</div>
+
+<Subscriber TValue="string" @ref="subscriber" />
+
+@code {
+    private readonly IOperandStream<string> valueStream = new OperandStream<string>();
+    private Subscriber<string> subscriber = null!;
+
+    private int DelayInMilliseconds { get; set; } = 200;
+
+    protected override void OnAfterRender(bool firstRender) {
+        if (firstRender) {
+            valueStream.Debounce(() => DelayInMilliseconds).Subscribe(subscriber.Subscribe);
+        }
+    }
+}

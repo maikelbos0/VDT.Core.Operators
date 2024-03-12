@@ -1,0 +1,60 @@
+﻿@page "/Merge"
+
+<h1>Merge</h1>
+
+<p>
+    Merge is an operator that publishes values received from two or more instances of <code>IOperandStream&lt;TValue&gt;</code> of the same type. Below example
+    takes values from three different streams and merges them into one.
+</p>
+
+<div class="row">
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="firstValue" class="form-label">Value</label>
+        <input type="text" class="form-control" id="firstValue" @bind-value="FirstValue" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+        <button class="btn btn-primary w-100" @onclick="async () => await firstValueStream.Publish(FirstValue)">Publish to first stream</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="secondValue" class="form-label">Value</label>
+        <input type="text" class="form-control" id="secondValue" @bind-value="SecondValue" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+        <button class="btn btn-primary w-100" @onclick="async () => await secondValueStream.Publish(SecondValue)">Publish to second stream</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="thirdValue" class="form-label">Value</label>
+        <input type="text" class="form-control" id="thirdValue" @bind-value="ThirdValue" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+        <button class="btn btn-primary w-100" @onclick="async () => await thirdValueStream.Publish(ThirdValue)">Publish to third stream</button>
+    </div>
+</div>
+
+<Subscriber TValue="string" @ref="subscriber" />
+
+@code {
+    private readonly IOperandStream<string> firstValueStream = new OperandStream<string>();
+    private readonly IOperandStream<string> secondValueStream = new OperandStream<string>();
+    private readonly IOperandStream<string> thirdValueStream = new OperandStream<string>();
+    private Subscriber<string> subscriber = null!;
+
+    private string FirstValue { get; set; } = "First value";
+    private string SecondValue { get; set; } = "Second value";
+    private string ThirdValue { get; set; } = "Third value";
+
+    protected override void OnAfterRender(bool firstRender) {
+        if (firstRender) {
+            firstValueStream.Merge(secondValueStream, thirdValueStream).Subscribe(subscriber.Subscribe);
+        }
+    }
+}

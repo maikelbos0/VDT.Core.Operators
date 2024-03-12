@@ -1,0 +1,46 @@
+﻿@page "/Filter"
+
+<h1>Filter</h1>
+
+<p>
+    Filter is an operator that publishes only those received values that match the provided predicate. The predicate can be synchronous or asynchronous. Below
+    example applies a filter to the entered values such that they must contain a specific text and must not contain a different text.
+</p>
+
+<div class="row">
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="value" class="form-label">Value</label>
+        <input type="text" class="form-control" id="value" @bind-value="@Value" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="mustContain" class="form-label">Must contain</label>
+        <input type="text" class="form-control" id="mustContain" @bind-value="@MustContain" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="mustNotContain" class="form-label">Must not contain</label>
+        <input type="text" class="form-control" id="mustNotContain" @bind-value="@MustNotContain" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+        <button class="btn btn-primary w-100" @onclick="async () => await valueStream.Publish(Value)">Publish</button>
+    </div>
+</div>
+
+<Subscriber TValue="string" @ref="subscriber" />
+
+@code {
+    private readonly IOperandStream<string> valueStream = new OperandStream<string>();
+    private Subscriber<string> subscriber = null!;
+
+    private string Value { get; set; } = "Value";
+    private string MustContain { get; set; } = "";
+    private string MustNotContain { get; set; } = "Something";
+
+    protected override void OnAfterRender(bool firstRender) {
+        if (firstRender) {
+            valueStream.Filter(x => x.Contains(MustContain) && !x.Contains(MustNotContain)).Subscribe(subscriber.Subscribe);
+        }
+    }
+}
