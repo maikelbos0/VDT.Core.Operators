@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,8 +9,7 @@ namespace VDT.Core.Operators;
 
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
-    // TODO add locking or use ConcurrentDictionary
-    private readonly Dictionary<Subscription, Func<TValue, CancellationToken, Task>> subscribers = [];
+    private readonly ConcurrentDictionary<Subscription, Func<TValue, CancellationToken, Task>> subscribers = [];
 
     /// <inheritdoc/>
     public Task Publish(TValue value)
@@ -48,7 +48,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     /// <inheritdoc/>
     public Subscription Subscribe(Func<TValue, CancellationToken, Task> subscriber) {
         var subscription = new Subscription();
-        subscribers.Add(subscription, subscriber);
+        Debug.Assert(subscribers.TryAdd(subscription, subscriber));
         return subscription;
     }
 
