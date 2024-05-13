@@ -27,7 +27,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public void Subscribe(Action<TValue> subscriber)
-        => subscribers.Add((value, _) => {
+        => Subscribe((value, _) => {
             subscriber(value);
             return Task.CompletedTask;
         });
@@ -38,7 +38,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public void Subscribe(Func<TValue, Task> subscriber)
-        => subscribers.Add((value, _) => subscriber(value));
+        => Subscribe((value, _) => subscriber(value));
 
     /// <inheritdoc/>
     public void Subscribe(Func<CancellationToken, Task> subscriber)
