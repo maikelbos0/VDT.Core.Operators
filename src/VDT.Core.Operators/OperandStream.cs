@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,7 +8,16 @@ namespace VDT.Core.Operators;
 
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
-    private readonly ConcurrentDictionary<object, List<Func<TValue, CancellationToken, Task>>> subscribers = [];
+    private class Subscription {
+        public Func<TValue, CancellationToken, Task> Subscriber { get; }
+        public int Count { get; set; } = 1;
+        public Subscription(Func<TValue, CancellationToken, Task> subscriber) {
+            Subscriber = subscriber;
+        }
+    }
+
+    private readonly object subscriptionsLock = new();
+    private readonly Dictionary<object, Subscription> subscriptions = [];
 
     /// <inheritdoc/>
     public Task Publish(TValue value)
@@ -17,7 +25,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public Task Publish(TValue value, CancellationToken cancellationToken)
-        => Task.WhenAll(subscribers.Values.SelectMany(subscribers => subscribers.Select(subscriber => subscriber(value, cancellationToken))));
+        => Task.WhenAll(subscriptions.Values.SelectMany(subscription => Enumerable.Repeat(subscription, subscription.Count).Select(subscription => subscription.Subscriber(value, cancellationToken))));
 
     /// <inheritdoc/>
     public void Subscribe(Action subscriber)
@@ -50,14 +58,14 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         => Subscribe(subscriber, subscriber);
 
     private void Subscribe(object key, Func<TValue, CancellationToken, Task> subscriber) {
-        subscribers.AddOrUpdate(
-            key,
-            key => new List<Func<TValue, CancellationToken, Task>>() { subscriber },
-            (key, subscribers) => {
-                subscribers.Add(subscriber);
-                return subscribers;
+        lock (subscriptionsLock) {
+            if (subscriptions.TryGetValue(key, out var subscription)) {
+                subscription.Count++;
             }
-        );
+            else {
+                subscriptions.Add(key, new Subscription(subscriber));
+            }
+        }
     }
 
     /// <inheritdoc/>
