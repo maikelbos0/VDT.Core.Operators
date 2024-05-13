@@ -8,7 +8,8 @@ namespace VDT.Core.Operators;
 
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
-    private readonly List<Func<TValue, CancellationToken, Task>> subscribers = [];
+    // TODO add locking or use ConcurrentDictionary
+    private readonly Dictionary<Subscription, Func<TValue, CancellationToken, Task>> subscribers = [];
 
     /// <inheritdoc/>
     public Task Publish(TValue value)
@@ -16,37 +17,40 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public Task Publish(TValue value, CancellationToken cancellationToken)
-        => Task.WhenAll(subscribers.Select(subscriber => subscriber(value, cancellationToken)));
+        => Task.WhenAll(subscribers.Values.Select(subscriber => subscriber(value, cancellationToken)));
 
     /// <inheritdoc/>
-    public void Subscribe(Action subscriber)
+    public Subscription Subscribe(Action subscriber)
         => Subscribe((_, _) => {
             subscriber();
             return Task.CompletedTask;
         });
 
     /// <inheritdoc/>
-    public void Subscribe(Action<TValue> subscriber)
+    public Subscription Subscribe(Action<TValue> subscriber)
         => Subscribe((value, _) => {
             subscriber(value);
             return Task.CompletedTask;
         });
 
     /// <inheritdoc/>
-    public void Subscribe(Func<Task> subscriber)
+    public Subscription Subscribe(Func<Task> subscriber)
         => Subscribe((_, _) => subscriber());
 
     /// <inheritdoc/>
-    public void Subscribe(Func<TValue, Task> subscriber)
+    public Subscription Subscribe(Func<TValue, Task> subscriber)
         => Subscribe((value, _) => subscriber(value));
 
     /// <inheritdoc/>
-    public void Subscribe(Func<CancellationToken, Task> subscriber)
+    public Subscription Subscribe(Func<CancellationToken, Task> subscriber)
         => Subscribe((_, cancellationToken) => subscriber(cancellationToken));
 
     /// <inheritdoc/>
-    public void Subscribe(Func<TValue, CancellationToken, Task> subscriber)
-        => subscribers.Add(subscriber);
+    public Subscription Subscribe(Func<TValue, CancellationToken, Task> subscriber) {
+        var subscription = new Subscription();
+        subscribers.Add(subscription, subscriber);
+        return subscription;
+    }
 
     /// <inheritdoc/>
     public IOperandStream<TTransformedValue> Pipe<TTransformedValue>(IOperator<TValue, TTransformedValue> op) {
