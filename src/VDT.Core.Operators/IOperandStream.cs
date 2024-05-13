@@ -28,37 +28,37 @@ public interface IOperandStream<TValue> {
     /// Subscribe a method to execute when a stream is published to
     /// </summary>
     /// <param name="subscriber">Method that gets executed</param>
-    Subscription Subscribe(Action subscriber);
+    void Subscribe(Action subscriber);
 
     /// <summary>
     /// Subscribe a method to receive values published to this stream
     /// </summary>
     /// <param name="subscriber">Method that handles the received value</param>
-    Subscription Subscribe(Action<TValue> subscriber);
+    void Subscribe(Action<TValue> subscriber);
 
     /// <summary>
     /// Subscribe a method to execute when a stream is published to
     /// </summary>
     /// <param name="subscriber">Method that gets executed</param>
-    Subscription Subscribe(Func<Task> subscriber);
+    void Subscribe(Func<Task> subscriber);
 
     /// <summary>
     /// Subscribe a method to receive values published to this stream
     /// </summary>
     /// <param name="subscriber">Method that handles the received value</param>
-    Subscription Subscribe(Func<TValue, Task> subscriber);
+    void Subscribe(Func<TValue, Task> subscriber);
 
     /// <summary>
     /// Subscribe a method to execute when a stream is published to
     /// </summary>
     /// <param name="subscriber">Method that gets executed</param>
-    Subscription Subscribe(Func<CancellationToken, Task> subscriber);
+    void Subscribe(Func<CancellationToken, Task> subscriber);
 
     /// <summary>
     /// Subscribe a method to receive values published to this stream
     /// </summary>
     /// <param name="subscriber">Method that handles the received value</param>
-    Subscription Subscribe(Func<TValue, CancellationToken, Task> subscriber);
+    void Subscribe(Func<TValue, CancellationToken, Task> subscriber);
 
     /// <summary>
     /// Pass values published to this stream to the supplied operator for transformation and publish them to a target stream

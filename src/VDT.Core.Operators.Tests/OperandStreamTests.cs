@@ -111,6 +111,19 @@ public class OperandStreamTests {
     }
 
     [Fact]
+    public async Task PublishesValuesToMultipleSubscriptionsOfSameSubscriber() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Action<string>>();
+
+        subject.Subscribe(subscriber);
+        subject.Subscribe(subscriber);
+
+        await subject.Publish("Foo");
+
+        subscriber.Received(2).Invoke("Foo");
+    }
+
+    [Fact]
     public async Task PipesValuesToOperator() {
         var subject = new OperandStream<string>();
         var op = Substitute.For<IOperator<string, string>>();
