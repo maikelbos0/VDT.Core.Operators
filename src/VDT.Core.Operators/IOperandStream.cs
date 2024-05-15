@@ -83,4 +83,10 @@ public interface IOperandStream<TValue> {
     /// <param name="initializationData">Data for the operator to initialize the target stream with</param>
     /// <returns>The target stream the supplied operator will publish transformed values to</returns>
     IOperandStream<TTransformedValue> Pipe<TTransformedValue, TInitializationData>(IOperator<TValue, TTransformedValue, TInitializationData> op, TInitializationData initializationData);
+
+    /// <summary>
+    /// Unsubscribes the method represented by the subscription from the operand stream
+    /// </summary>
+    /// <param name="subscription">Subscription to unsubscribe</param>
+    void Unsubscribe(Subscription<TValue> subscription);
 }

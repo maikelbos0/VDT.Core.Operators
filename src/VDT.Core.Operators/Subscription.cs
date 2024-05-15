@@ -8,7 +8,7 @@ public sealed class Subscription<TValue> {
     /// <summary>
     /// Gets the operand stream to which this subscription belongs; returns <see langword="null"/> if unsubscribed
     /// </summary>
-    public IOperandStream<TValue>? OperandStream { get; private set; }
+    public IOperandStream<TValue>? OperandStream { get; internal set; }
 
     /// <summary>
     /// Create a subscription

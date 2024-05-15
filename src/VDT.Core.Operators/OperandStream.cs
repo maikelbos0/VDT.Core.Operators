@@ -75,6 +75,16 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
         return targetStream;
     }
+
+    /// <inheritdoc/>
+    public void Unsubscribe(Subscription<TValue> subscription) {
+        if (subscription.OperandStream == this) {
+            lock (subscriptionsLock) {
+                subscription.OperandStream = null;
+                subscriptions.Remove(subscription);
+            }
+        }
+    }
 }
 
 /// <inheritdoc/>
