@@ -8,6 +8,16 @@ namespace VDT.Core.Operators.Tests;
 
 public class OperandStreamTests {
     [Fact]
+    public void ReturnsSubscription() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Action>();
+
+        var subscription = subject.Subscribe(Substitute.For<Func<string, CancellationToken, Task>>());
+
+        Assert.Equal(subject, subscription.OperandStream);
+    }
+
+    [Fact]
     public async Task PublishesToSubscriberAction() {
         var subject = new OperandStream<string>();
         var subscriber = Substitute.For<Action>();
