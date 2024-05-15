@@ -9,7 +9,7 @@ namespace VDT.Core.Operators;
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly object subscriptionsLock = new();
-    private readonly Dictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
+    private readonly HashSet<Subscription<TValue>> subscriptions = [];
 
     /// <inheritdoc/>
     public Task Publish(TValue value)
@@ -17,7 +17,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public Task Publish(TValue value, CancellationToken cancellationToken)
-        => Task.WhenAll(subscriptions.Values.Select(subscriber => subscriber(value, cancellationToken)));
+        => Task.WhenAll(subscriptions.Select(subscription => subscription.Subscriber!(value, cancellationToken)));
 
     /// <inheritdoc/>
     public Subscription<TValue> Subscribe(Action subscriber)
@@ -50,7 +50,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         lock (subscriptionsLock) {
             var subscription = new Subscription<TValue>(this, subscriber);
 
-            subscriptions.Add(subscription, subscriber);
+            subscriptions.Add(subscription);
 
             return subscription;
         }
@@ -82,7 +82,13 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
             lock (subscriptionsLock) {
                 subscription.OperandStream = null;
                 subscriptions.Remove(subscription);
+                subscription.Subscriber = null;
             }
+        }
+    }
+
+    public void UnsubscribeAll() {
+        lock (subscriptionsLock) {
         }
     }
 }

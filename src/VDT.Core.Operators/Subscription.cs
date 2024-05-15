@@ -15,14 +15,14 @@ public sealed class Subscription<TValue> {
     public IOperandStream<TValue>? OperandStream { get; internal set; }
 
     /// <summary>
-    /// Gets the method that gets executed when <see cref="OperandStream"/> publishes a value
+    /// Gets the method that gets executed when <see cref="OperandStream"/> publishes a value; returns <see langword="null"/> if unsubscribed
     /// </summary>
     public Func<TValue, CancellationToken, Task>? Subscriber { get; internal set; }
 
     /// <summary>
     /// Create a subscription
     /// </summary>
-    /// <param name="subscriber">Method that gets executed when <see cref="operandStream"/> publishes a value</param>
+    /// <param name="subscriber">Method that gets executed when <paramref name="operandStream"/> publishes a value</param>
     /// <param name="operandStream">Operand stream to which this subscription belongs</param>
     public Subscription(IOperandStream<TValue> operandStream, Func<TValue, CancellationToken, Task> subscriber) {
         OperandStream = operandStream;
