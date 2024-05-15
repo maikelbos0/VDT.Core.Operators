@@ -10,11 +10,12 @@ public class OperandStreamTests {
     [Fact]
     public void ReturnsSubscription() {
         var subject = new OperandStream<string>();
-        var subscriber = Substitute.For<Action>();
+        var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
 
-        var subscription = subject.Subscribe(Substitute.For<Func<string, CancellationToken, Task>>());
+        var subscription = subject.Subscribe(subscriber);
 
         Assert.Equal(subject, subscription.OperandStream);
+        Assert.Equal(subscriber, subscription.Subscriber);
     }
 
     [Fact]
@@ -181,6 +182,7 @@ public class OperandStreamTests {
 
         subscriber.DidNotReceive().Invoke(Arg.Any<string>());
         Assert.Null(subscription.OperandStream);
+        Assert.Null(subscription.Subscriber);
     }
 
     [Fact]
@@ -193,5 +195,6 @@ public class OperandStreamTests {
         subject.Unsubscribe(subscription);
 
         Assert.NotNull(subscription.OperandStream);
+        Assert.NotNull(subscription.Subscriber);
     }
 }

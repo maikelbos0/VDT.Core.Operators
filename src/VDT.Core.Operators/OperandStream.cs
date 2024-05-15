@@ -48,7 +48,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     /// <inheritdoc/>
     public Subscription<TValue> Subscribe(Func<TValue, CancellationToken, Task> subscriber) {
         lock (subscriptionsLock) {
-            var subscription = new Subscription<TValue>(this);
+            var subscription = new Subscription<TValue>(this, subscriber);
 
             subscriptions.Add(subscription, subscriber);
 
