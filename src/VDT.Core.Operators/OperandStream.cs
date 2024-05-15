@@ -8,16 +8,8 @@ namespace VDT.Core.Operators;
 
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
-    private class Subscription {
-        public Func<TValue, CancellationToken, Task> Subscriber { get; }
-        public int Count { get; set; } = 1;
-        public Subscription(Func<TValue, CancellationToken, Task> subscriber) {
-            Subscriber = subscriber;
-        }
-    }
-
     private readonly object subscriptionsLock = new();
-    private readonly Dictionary<object, Subscription> subscriptions = [];
+    private readonly Dictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
 
     /// <inheritdoc/>
     public Task Publish(TValue value)
@@ -25,46 +17,42 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public Task Publish(TValue value, CancellationToken cancellationToken)
-        => Task.WhenAll(subscriptions.Values.SelectMany(subscription => Enumerable.Repeat(subscription, subscription.Count).Select(subscription => subscription.Subscriber(value, cancellationToken))));
+        => Task.WhenAll(subscriptions.Values.Select(subscriber => subscriber(value, cancellationToken)));
 
     /// <inheritdoc/>
-    public void Subscribe(Action subscriber)
-        => Subscribe(subscriber, (_, _) => {
+    public Subscription<TValue> Subscribe(Action subscriber)
+        => Subscribe((_, _) => {
             subscriber();
             return Task.CompletedTask;
         });
 
     /// <inheritdoc/>
-    public void Subscribe(Action<TValue> subscriber)
-        => Subscribe(subscriber, (value, _) => {
+    public Subscription<TValue> Subscribe(Action<TValue> subscriber)
+        => Subscribe((value, _) => {
             subscriber(value);
             return Task.CompletedTask;
         });
 
     /// <inheritdoc/>
-    public void Subscribe(Func<Task> subscriber)
-        => Subscribe(subscriber, (_, _) => subscriber());
+    public Subscription<TValue> Subscribe(Func<Task> subscriber)
+        => Subscribe((_, _) => subscriber());
 
     /// <inheritdoc/>
-    public void Subscribe(Func<TValue, Task> subscriber)
-        => Subscribe(subscriber, (value, _) => subscriber(value));
+    public Subscription<TValue> Subscribe(Func<TValue, Task> subscriber)
+        => Subscribe((value, _) => subscriber(value));
 
     /// <inheritdoc/>
-    public void Subscribe(Func<CancellationToken, Task> subscriber)
-        => Subscribe(subscriber, (_, cancellationToken) => subscriber(cancellationToken));
+    public Subscription<TValue> Subscribe(Func<CancellationToken, Task> subscriber)
+        => Subscribe((_, cancellationToken) => subscriber(cancellationToken));
 
     /// <inheritdoc/>
-    public void Subscribe(Func<TValue, CancellationToken, Task> subscriber)
-        => Subscribe(subscriber, subscriber);
-
-    private void Subscribe(object key, Func<TValue, CancellationToken, Task> subscriber) {
+    public Subscription<TValue> Subscribe(Func<TValue, CancellationToken, Task> subscriber) {
         lock (subscriptionsLock) {
-            if (subscriptions.TryGetValue(key, out var subscription)) {
-                subscription.Count++;
-            }
-            else {
-                subscriptions.Add(key, new Subscription(subscriber));
-            }
+            var subscription = new Subscription<TValue>(this);
+
+            subscriptions.Add(subscription, subscriber);
+
+            return subscription;
         }
     }
 
