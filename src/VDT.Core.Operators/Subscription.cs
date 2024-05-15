@@ -17,4 +17,13 @@ public sealed class Subscription<TValue> {
     public Subscription(IOperandStream<TValue> operandStream) {
         OperandStream = operandStream;
     }
+
+    /// <summary>
+    /// Unsubscribe the subscriber from the operand stream to which it belongs
+    /// </summary>
+    public void Unsubscribe() {
+        if (OperandStream != null) {
+            OperandStream.Unsubscribe(this);
+        }
+    }
 }
