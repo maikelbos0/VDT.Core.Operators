@@ -5,7 +5,7 @@
 /// </summary>
 public static class OperandStreamFlattenExtensions {
     /// <summary>
-    /// Subscribe to an <see cref="IOperandStream{TValue}"/> of type <see cref="OperandStream{TValue}"/> and publish values of type <typeparamref name="TValue"/>
+    /// Subscribe to an <see cref="IOperandStream{TValue}"/> of type <see cref="IOperandStream{TValue}"/> and publish values of type <typeparamref name="TValue"/>
     /// </summary>
     /// <typeparam name="TValue">Type of operand stream to flatten</typeparam>
     /// <param name="operandStream"><see cref="IOperandStream{TValue}"/> that will be subscribed to</param>

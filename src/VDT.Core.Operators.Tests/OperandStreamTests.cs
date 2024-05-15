@@ -84,15 +84,15 @@ public class OperandStreamTests {
     [Fact]
     public async Task PublishesMultipleValuesToSubscriber() {
         var subject = new OperandStream<string>();
-        var subscribeAction = Substitute.For<Action<string>>();
+        var subscriber = Substitute.For<Action<string>>();
 
-        subject.Subscribe(subscribeAction);
+        subject.Subscribe(subscriber);
 
         await subject.Publish("Foo");
         await subject.Publish("Bar");
 
-        subscribeAction.Received().Invoke("Foo");
-        subscribeAction.Received().Invoke("Bar");
+        subscriber.Received().Invoke("Foo");
+        subscriber.Received().Invoke("Bar");
     }
 
     [Fact]
@@ -127,24 +127,24 @@ public class OperandStreamTests {
     public async Task PipesValuesToOperator() {
         var subject = new OperandStream<string>();
         var op = Substitute.For<IOperator<string, string>>();
-        var subscribeAction = Substitute.For<Action<string>>();
+        var subscriber = Substitute.For<Action<string>>();
 
         op.Execute(Arg.Any<string>(), Arg.Any<IOperandStream<string>>(), Arg.Any<CancellationToken>()).Returns(callInfo => callInfo.ArgAt<IOperandStream<string>>(1).Publish(callInfo.ArgAt<string>(0)));
 
         var result = subject.Pipe(op);
 
-        result.Subscribe(subscribeAction);
+        result.Subscribe(subscriber);
 
         await subject.Publish("Foo");
 
-        subscribeAction.Received().Invoke("Foo");
+        subscriber.Received().Invoke("Foo");
     }
 
     [Fact]
     public async Task PipesValuesToOperatorWithInitialization() {
         var subject = new OperandStream<string>();
         var op = Substitute.For<IOperator<string, string, string>>();
-        var subscribeAction = Substitute.For<Action<string>>();
+        var subscriber = Substitute.For<Action<string>>();
 
         op.Execute(Arg.Any<string>(), Arg.Any<IOperandStream<string>>(), Arg.Any<CancellationToken>()).Returns(callInfo => callInfo.ArgAt<IOperandStream<string>>(1).Publish(callInfo.ArgAt<string>(0)));
 
@@ -152,10 +152,10 @@ public class OperandStreamTests {
 
         op.Received().Initialize(result, "Bar");
 
-        result.Subscribe(subscribeAction);
+        result.Subscribe(subscriber);
 
         await subject.Publish("Foo");
 
-        subscribeAction.Received().Invoke("Foo");
+        subscriber.Received().Invoke("Foo");
     }
 }
