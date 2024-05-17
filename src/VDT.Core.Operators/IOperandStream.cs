@@ -28,37 +28,43 @@ public interface IOperandStream<TValue> {
     /// Subscribe a method to execute when a stream is published to
     /// </summary>
     /// <param name="subscriber">Method that gets executed</param>
-    void Subscribe(Action subscriber);
+    /// <returns>The subscription of the method to the operand stream</returns>
+    Subscription<TValue> Subscribe(Action subscriber);
 
     /// <summary>
     /// Subscribe a method to receive values published to this stream
     /// </summary>
     /// <param name="subscriber">Method that handles the received value</param>
-    void Subscribe(Action<TValue> subscriber);
+    /// <returns>The subscription of the method to the operand stream</returns>
+    Subscription<TValue> Subscribe(Action<TValue> subscriber);
 
     /// <summary>
     /// Subscribe a method to execute when a stream is published to
     /// </summary>
     /// <param name="subscriber">Method that gets executed</param>
-    void Subscribe(Func<Task> subscriber);
+    /// <returns>The subscription of the method to the operand stream</returns>
+    Subscription<TValue> Subscribe(Func<Task> subscriber);
 
     /// <summary>
     /// Subscribe a method to receive values published to this stream
     /// </summary>
     /// <param name="subscriber">Method that handles the received value</param>
-    void Subscribe(Func<TValue, Task> subscriber);
+    /// <returns>The subscription of the method to the operand stream</returns>
+    Subscription<TValue> Subscribe(Func<TValue, Task> subscriber);
 
     /// <summary>
     /// Subscribe a method to execute when a stream is published to
     /// </summary>
     /// <param name="subscriber">Method that gets executed</param>
-    void Subscribe(Func<CancellationToken, Task> subscriber);
+    /// <returns>The subscription of the method to the operand stream</returns>
+    Subscription<TValue> Subscribe(Func<CancellationToken, Task> subscriber);
 
     /// <summary>
     /// Subscribe a method to receive values published to this stream
     /// </summary>
     /// <param name="subscriber">Method that handles the received value</param>
-    void Subscribe(Func<TValue, CancellationToken, Task> subscriber);
+    /// <returns>The subscription of the method to the operand stream</returns>
+    Subscription<TValue> Subscribe(Func<TValue, CancellationToken, Task> subscriber);
 
     /// <summary>
     /// Pass values published to this stream to the supplied operator for transformation and publish them to a target stream
@@ -77,4 +83,15 @@ public interface IOperandStream<TValue> {
     /// <param name="initializationData">Data for the operator to initialize the target stream with</param>
     /// <returns>The target stream the supplied operator will publish transformed values to</returns>
     IOperandStream<TTransformedValue> Pipe<TTransformedValue, TInitializationData>(IOperator<TValue, TTransformedValue, TInitializationData> op, TInitializationData initializationData);
+
+    /// <summary>
+    /// Unsubscribes the method represented by the subscription from the operand stream
+    /// </summary>
+    /// <param name="subscription">Subscription to unsubscribe</param>
+    void Unsubscribe(Subscription<TValue> subscription);
+
+    /// <summary>
+    /// Unsubscribes all subscribed subscribers from this operand stream
+    /// </summary>
+    void UnsubscribeAll();
 }

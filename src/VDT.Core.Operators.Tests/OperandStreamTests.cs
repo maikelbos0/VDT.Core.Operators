@@ -8,6 +8,16 @@ namespace VDT.Core.Operators.Tests;
 
 public class OperandStreamTests {
     [Fact]
+    public void ReturnsSubscription() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
+
+        var subscription = subject.Subscribe(subscriber);
+
+        Assert.Equal(subject, subscription.OperandStream);
+    }
+
+    [Fact]
     public async Task PublishesToSubscriberAction() {
         var subject = new OperandStream<string>();
         var subscriber = Substitute.For<Action>();
@@ -84,15 +94,15 @@ public class OperandStreamTests {
     [Fact]
     public async Task PublishesMultipleValuesToSubscriber() {
         var subject = new OperandStream<string>();
-        var subscribeAction = Substitute.For<Action<string>>();
+        var subscriber = Substitute.For<Action<string>>();
 
-        subject.Subscribe(subscribeAction);
+        subject.Subscribe(subscriber);
 
         await subject.Publish("Foo");
         await subject.Publish("Bar");
 
-        subscribeAction.Received().Invoke("Foo");
-        subscribeAction.Received().Invoke("Bar");
+        subscriber.Received().Invoke("Foo");
+        subscriber.Received().Invoke("Bar");
     }
 
     [Fact]
@@ -111,27 +121,40 @@ public class OperandStreamTests {
     }
 
     [Fact]
+    public async Task PublishesValuesToMultipleSubscriptionsOfSameSubscriber() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Action<string>>();
+
+        subject.Subscribe(subscriber);
+        subject.Subscribe(subscriber);
+
+        await subject.Publish("Foo");
+
+        subscriber.Received(2).Invoke("Foo");
+    }
+
+    [Fact]
     public async Task PipesValuesToOperator() {
         var subject = new OperandStream<string>();
         var op = Substitute.For<IOperator<string, string>>();
-        var subscribeAction = Substitute.For<Action<string>>();
+        var subscriber = Substitute.For<Action<string>>();
 
         op.Execute(Arg.Any<string>(), Arg.Any<IOperandStream<string>>(), Arg.Any<CancellationToken>()).Returns(callInfo => callInfo.ArgAt<IOperandStream<string>>(1).Publish(callInfo.ArgAt<string>(0)));
 
         var result = subject.Pipe(op);
 
-        result.Subscribe(subscribeAction);
+        result.Subscribe(subscriber);
 
         await subject.Publish("Foo");
 
-        subscribeAction.Received().Invoke("Foo");
+        subscriber.Received().Invoke("Foo");
     }
 
     [Fact]
     public async Task PipesValuesToOperatorWithInitialization() {
         var subject = new OperandStream<string>();
         var op = Substitute.For<IOperator<string, string, string>>();
-        var subscribeAction = Substitute.For<Action<string>>();
+        var subscriber = Substitute.For<Action<string>>();
 
         op.Execute(Arg.Any<string>(), Arg.Any<IOperandStream<string>>(), Arg.Any<CancellationToken>()).Returns(callInfo => callInfo.ArgAt<IOperandStream<string>>(1).Publish(callInfo.ArgAt<string>(0)));
 
@@ -139,10 +162,55 @@ public class OperandStreamTests {
 
         op.Received().Initialize(result, "Bar");
 
-        result.Subscribe(subscribeAction);
+        result.Subscribe(subscriber);
 
         await subject.Publish("Foo");
 
-        subscribeAction.Received().Invoke("Foo");
+        subscriber.Received().Invoke("Foo");
+    }
+
+    [Fact]
+    public async Task Unsubscribe() {
+        var subject = new OperandStream<string>();
+        var subscriber = Substitute.For<Action<string>>();
+        var subscription = subject.Subscribe(subscriber);
+
+        subject.Unsubscribe(subscription);
+
+        await subject.Publish("Foo");
+
+        subscriber.DidNotReceive().Invoke(Arg.Any<string>());
+        Assert.Null(subscription.OperandStream);
+    }
+
+    [Fact]
+    public void UnsubscribeDoesNotUnsubscribeForDifferentOperandStream() {
+        var subject = new OperandStream<string>();
+        var other = new OperandStream<string>();
+        var subscriber = Substitute.For<Action<string>>();
+        var subscription = other.Subscribe(subscriber);
+
+        subject.Unsubscribe(subscription);
+
+        Assert.NotNull(subscription.OperandStream);
+    }
+
+    [Fact]
+    public async Task UnsubscribeAll() {
+        var subject = new OperandStream<string>();
+        var subscriber1 = Substitute.For<Action<string>>();
+        var subscriber2 = Substitute.For<Action<string>>();
+
+        var subscription1 = subject.Subscribe(subscriber1);
+        var subscription2 = subject.Subscribe(subscriber2);
+
+        subject.UnsubscribeAll();
+
+        await subject.Publish("Foo");
+
+        subscriber1.DidNotReceive().Invoke(Arg.Any<string>());
+        subscriber2.DidNotReceive().Invoke(Arg.Any<string>());
+        Assert.Null(subscription1.OperandStream);
+        Assert.Null(subscription2.OperandStream);
     }
 }

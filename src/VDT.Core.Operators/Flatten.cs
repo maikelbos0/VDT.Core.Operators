@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace VDT.Core.Operators;
 
 /// <summary>
-/// Operation that subscribes to an <see cref="IOperandStream{TValue}"/> of type <see cref="OperandStream{TValue}"/> and publishes values of <typeparamref name="TValue"/>
+/// Operation that subscribes to an <see cref="IOperandStream{TValue}"/> of type <see cref="IOperandStream{TValue}"/> and publishes values of <typeparamref name="TValue"/>
 /// </summary>
 /// <typeparam name="TValue">Type of operand stream to flatten</typeparam>
 public class Flatten<TValue> : IOperator<IOperandStream<TValue>, TValue> {
