@@ -16,7 +16,7 @@ public class GroupBy<TValue, TKey> : IOperator<TValue, List<TValue>> {
 
     private readonly object groupLock = new();
     private TKey? previousKey;
-    private List<TValue> previousValues = new();
+    private List<TValue> previousValues = [];
 
     /// <summary>
     /// Create a group by operator
@@ -78,9 +78,9 @@ public class GroupBy<TValue, TKey> : IOperator<TValue, List<TValue>> {
             else {
                 valuesToPublish = previousValues;
                 previousKey = key;
-                previousValues = new() {
+                previousValues = [
                     value
-                };
+                ];
             }
         }
 

@@ -22,8 +22,6 @@ public sealed class Subscription<TValue> {
     /// Unsubscribe the subscriber from the operand stream to which it belongs
     /// </summary>
     public void Unsubscribe() {
-        if (OperandStream != null) {
-            OperandStream.Unsubscribe(this);
-        }
+        OperandStream?.Unsubscribe(this);
     }
 }
