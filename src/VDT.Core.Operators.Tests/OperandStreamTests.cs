@@ -15,7 +15,6 @@ public class OperandStreamTests {
         var subscription = subject.Subscribe(subscriber);
 
         Assert.Equal(subject, subscription.OperandStream);
-        Assert.Equal(subscriber, subscription.Subscriber);
     }
 
     [Fact]
@@ -182,7 +181,6 @@ public class OperandStreamTests {
 
         subscriber.DidNotReceive().Invoke(Arg.Any<string>());
         Assert.Null(subscription.OperandStream);
-        Assert.Null(subscription.Subscriber);
     }
 
     [Fact]
@@ -195,6 +193,5 @@ public class OperandStreamTests {
         subject.Unsubscribe(subscription);
 
         Assert.NotNull(subscription.OperandStream);
-        Assert.NotNull(subscription.Subscriber);
     }
 }

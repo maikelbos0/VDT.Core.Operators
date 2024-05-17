@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,8 +8,7 @@ namespace VDT.Core.Operators;
 
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
-    private readonly object subscriptionsLock = new();
-    private readonly HashSet<Subscription<TValue>> subscriptions = [];
+    private readonly ConcurrentDictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
 
     /// <inheritdoc/>
     public Task Publish(TValue value)
@@ -17,7 +16,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public Task Publish(TValue value, CancellationToken cancellationToken)
-        => Task.WhenAll(subscriptions.Select(subscription => subscription.Subscriber!(value, cancellationToken)));
+        => Task.WhenAll(subscriptions.Values.Select(subscriber => subscriber(value, cancellationToken)));
 
     /// <inheritdoc/>
     public Subscription<TValue> Subscribe(Action subscriber)
@@ -47,13 +46,11 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public Subscription<TValue> Subscribe(Func<TValue, CancellationToken, Task> subscriber) {
-        lock (subscriptionsLock) {
-            var subscription = new Subscription<TValue>(this, subscriber);
+        var subscription = new Subscription<TValue>(this);
 
-            subscriptions.Add(subscription);
+        subscriptions.TryAdd(subscription, subscriber);
 
-            return subscription;
-        }
+        return subscription;
     }
 
     /// <inheritdoc/>
@@ -79,11 +76,8 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     /// <inheritdoc/>
     public void Unsubscribe(Subscription<TValue> subscription) {
         if (subscription.OperandStream == this) {
-            lock (subscriptionsLock) {
-                subscription.OperandStream = null;
-                subscriptions.Remove(subscription);
-                subscription.Subscriber = null;
-            }
+            subscription.OperandStream = null;
+            subscriptions.TryRemove(subscription, out _);
         }
     }
 
