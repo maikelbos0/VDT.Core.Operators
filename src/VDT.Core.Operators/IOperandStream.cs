@@ -89,4 +89,9 @@ public interface IOperandStream<TValue> {
     /// </summary>
     /// <param name="subscription">Subscription to unsubscribe</param>
     void Unsubscribe(Subscription<TValue> subscription);
+
+    /// <summary>
+    /// Unsubscribes all subscribed subscribers from this operand stream
+    /// </summary>
+    void UnsubscribeAll();
 }

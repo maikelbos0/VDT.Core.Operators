@@ -81,8 +81,11 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         }
     }
 
+    /// <inheritdoc/>
     public void UnsubscribeAll() {
-        lock (subscriptionsLock) {
+        foreach (var subscription in subscriptions.Keys) {
+            subscription.OperandStream = null;
+            subscriptions.TryRemove(subscription, out _);
         }
     }
 }

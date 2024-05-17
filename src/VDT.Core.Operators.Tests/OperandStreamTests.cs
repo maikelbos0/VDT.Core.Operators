@@ -170,7 +170,7 @@ public class OperandStreamTests {
     }
 
     [Fact]
-    public async Task Unsubscribes() {
+    public async Task Unsubscribe() {
         var subject = new OperandStream<string>();
         var subscriber = Substitute.For<Action<string>>();
         var subscription = subject.Subscribe(subscriber);
@@ -184,7 +184,7 @@ public class OperandStreamTests {
     }
 
     [Fact]
-    public void DoesNotUnsubscribeForDifferentOperandStream() {
+    public void UnsubscribeDoesNotUnsubscribeForDifferentOperandStream() {
         var subject = new OperandStream<string>();
         var other = new OperandStream<string>();
         var subscriber = Substitute.For<Action<string>>();
@@ -193,5 +193,24 @@ public class OperandStreamTests {
         subject.Unsubscribe(subscription);
 
         Assert.NotNull(subscription.OperandStream);
+    }
+
+    [Fact]
+    public async Task UnsubscribeAll() {
+        var subject = new OperandStream<string>();
+        var subscriber1 = Substitute.For<Action<string>>();
+        var subscriber2 = Substitute.For<Action<string>>();
+
+        var subscription1 = subject.Subscribe(subscriber1);
+        var subscription2 = subject.Subscribe(subscriber2);
+
+        subject.UnsubscribeAll();
+
+        await subject.Publish("Foo");
+
+        subscriber1.DidNotReceive().Invoke(Arg.Any<string>());
+        subscriber2.DidNotReceive().Invoke(Arg.Any<string>());
+        Assert.Null(subscription1.OperandStream);
+        Assert.Null(subscription2.OperandStream);
     }
 }
