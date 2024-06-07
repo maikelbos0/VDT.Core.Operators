@@ -9,7 +9,7 @@ namespace VDT.Core.Operators;
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly ConcurrentDictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
-    private readonly ConcurrentQueue<TValue> values = [];
+    private readonly ConcurrentQueue<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
 
     /// <inheritdoc/>
     public OperandStreamOptions Options { get; init; }
@@ -34,7 +34,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     /// <inheritdoc/>
     public async Task Publish(TValue value, CancellationToken cancellationToken) {
         if (Options.ReplayWhenSubscribing) {
-            values.Enqueue(value);
+            publishedValues.Enqueue((value, cancellationToken));
         }
 
         await Task.WhenAll(subscriptions.Values.Select(subscriber => subscriber(value, cancellationToken)));
@@ -79,8 +79,8 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         return subscription;
 
         async Task Replay() {
-            foreach (var value in values) {
-                await subscriber(value, CancellationToken.None);
+            foreach (var publishedValue in publishedValues) {
+                await subscriber(publishedValue.Value, publishedValue.CancellationToken);
             }
         }
     }
