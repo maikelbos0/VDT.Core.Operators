@@ -11,6 +11,22 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly ConcurrentDictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
 
     /// <inheritdoc/>
+    public OperandStreamOptions Options { get; init; }
+
+    /// <summary>
+    /// Create an operand stream
+    /// </summary>
+    public OperandStream() : this(new()) { }
+
+    /// <summary>
+    /// Create an operand stream
+    /// </summary>
+    /// <param name="options">Options for this stream</param>
+    public OperandStream(OperandStreamOptions options) {
+        Options = options;
+    }
+
+    /// <inheritdoc/>
     public Task Publish(TValue value)
         => Publish(value, CancellationToken.None);
 

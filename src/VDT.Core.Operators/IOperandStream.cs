@@ -10,6 +10,11 @@ namespace VDT.Core.Operators;
 /// <typeparam name="TValue">Type of value</typeparam>
 public interface IOperandStream<TValue> {
     /// <summary>
+    /// Gets or sets the options for this stream
+    /// </summary>
+    OperandStreamOptions Options { get; init; }
+
+    /// <summary>
     /// Publish a value to this stream
     /// </summary>
     /// <param name="value">The value</param>
