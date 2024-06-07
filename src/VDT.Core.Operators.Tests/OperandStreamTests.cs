@@ -134,6 +134,34 @@ public class OperandStreamTests {
     }
 
     [Fact]
+    public async Task DoesNotReplayPublishingIfDisabled() {
+        var subject = new OperandStream<string>(new OperandStreamOptions() { ReplayWhenSubscribing = false });
+        var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
+
+        await subject.Publish("Foo");
+
+        var subscription = subject.Subscribe(subscriber);
+
+        await subscription.ReplayTask;
+
+        await subscriber.DidNotReceive().Invoke(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ReplaysPublishingIfEnabled() {
+        var subject = new OperandStream<string>(new OperandStreamOptions() { ReplayWhenSubscribing = true });
+        var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
+
+        await subject.Publish("Foo");
+
+        var subscription = subject.Subscribe(subscriber);
+
+        await subscription.ReplayTask;
+
+        await subscriber.Received().Invoke("Foo", CancellationToken.None);
+    }
+
+    [Fact]
     public async Task PipesValuesToOperator() {
         var subject = new OperandStream<string>();
         var op = Substitute.For<IOperator<string, string>>();
