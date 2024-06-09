@@ -1,0 +1,56 @@
+﻿@page "/Options"
+
+<h1>Options</h1>
+
+<p>
+    Each operand stream can be provided with an <code>OperandStreamOptions</code> object to specify how subscribers are interacted with.
+</p>
+
+<ul>
+    <li><code>ReplayWhenSubscribing</code> toggles the setting to publish all published values to a new subscriber when it is added</li>
+</ul>
+
+<div class="row">
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label class="form-label" for="replayWhenSubscribing">Replay when subscribing</label>
+        <select class="form-select" id="replayWhenSubscribing" @onchange="args => ReplayWhenSubscribing = bool.Parse(args.Value?.ToString()!)">
+            <option value="true" selected="@ReplayWhenSubscribing">Enabled</option>
+            <option value="false" selected="@(!ReplayWhenSubscribing)">Disabled</option>
+        </select>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+        <button class="btn btn-primary w-100" @onclick="CreateStream">Create stream</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 col-md-6 col-xl-4 mb-3">
+        <label for="value" class="form-label">Value</label>
+        <input type="text" class="form-control" id="value" @bind-value="@Value" />
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+        <button class="btn btn-primary w-100" @onclick="async () => await valueStream.Publish(Value)">Publish</button>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+        <button class="btn btn-primary w-100" @onclick="() => valueStream.Subscribe(subscriber.Subscribe)">Subscribe</button>
+    </div>
+</div>
+
+<Subscriber TValue="string" @ref="subscriber" />
+
+@code {
+    private IOperandStream<string> valueStream = new OperandStream<string>();
+    private Subscriber<string> subscriber = null!;
+
+    private bool ReplayWhenSubscribing { get; set; }
+    private string Value { get; set; } = "Value";
+
+    private void CreateStream() {
+        valueStream.UnsubscribeAll();
+        valueStream = new OperandStream<string>(new OperandStreamOptions() { ReplayWhenSubscribing = ReplayWhenSubscribing });
+        subscriber.Clear();
+    }
+}
