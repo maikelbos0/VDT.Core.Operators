@@ -5,7 +5,7 @@
 /// </summary>
 public class OperandStreamOptions {
     /// <summary>
-    /// Publish all published values to a new subscriber when it is added
+    /// Gets or sets the setting to publish all previously published values to a new subscriber when it is added
     /// </summary>
     public bool ReplayWhenSubscribing { get; init; }
 }
