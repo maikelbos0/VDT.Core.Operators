@@ -12,6 +12,12 @@ can be parsed as integers before subscribing to the resulting integer stream.
 - Asynchronous piping of values through a variety of operators to transform them
 - Easily extensible with your own operators
 
+## Options
+
+Each operand stream can be provided with an `OperandStreamOptions` object to specify how subscribers are interacted with.
+
+- `ReplayWhenSubscribing` toggles the setting to publish all previously published values to a new subscriber when it is added
+
 ## Operators
 
 - `Debounce` delays and throttles output values

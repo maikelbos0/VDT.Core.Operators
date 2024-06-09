@@ -1,4 +1,6 @@
-﻿namespace VDT.Core.Operators;
+﻿using System.Threading.Tasks;
+
+namespace VDT.Core.Operators;
 
 /// <summary>
 /// Represents a method subscribed to an <see cref="IOperandStream{TValue}"/>
@@ -9,6 +11,12 @@ public sealed class Subscription<TValue> {
     /// Gets the operand stream to which this subscription belongs; returns <see langword="null"/> if unsubscribed
     /// </summary>
     public IOperandStream<TValue>? OperandStream { get; internal set; }
+
+    /// <summary>
+    /// Gets the task that represents the publishing to this subscriber of all previously published values if 
+    /// <see cref="OperandStreamOptions.ReplayWhenSubscribing"/> is <see langword="true"/>
+    /// </summary>
+    public Task ReplayTask { get; internal set; } = Task.CompletedTask;
 
     /// <summary>
     /// Create a subscription

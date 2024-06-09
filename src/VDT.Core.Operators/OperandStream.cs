@@ -9,14 +9,36 @@ namespace VDT.Core.Operators;
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly ConcurrentDictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
+    private readonly ConcurrentQueue<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
+
+    /// <inheritdoc/>
+    public OperandStreamOptions Options { get; init; }
+
+    /// <summary>
+    /// Create an operand stream
+    /// </summary>
+    public OperandStream() : this(new()) { }
+
+    /// <summary>
+    /// Create an operand stream
+    /// </summary>
+    /// <param name="options">Options for this stream</param>
+    public OperandStream(OperandStreamOptions options) {
+        Options = options;
+    }
 
     /// <inheritdoc/>
     public Task Publish(TValue value)
         => Publish(value, CancellationToken.None);
 
     /// <inheritdoc/>
-    public Task Publish(TValue value, CancellationToken cancellationToken)
-        => Task.WhenAll(subscriptions.Values.Select(subscriber => subscriber(value, cancellationToken)));
+    public async Task Publish(TValue value, CancellationToken cancellationToken) {
+        if (Options.ReplayWhenSubscribing) {
+            publishedValues.Enqueue((value, cancellationToken));
+        }
+
+        await Task.WhenAll(subscriptions.Values.Select(subscriber => subscriber(value, cancellationToken)));
+    }
 
     /// <inheritdoc/>
     public Subscription<TValue> Subscribe(Action subscriber)
@@ -49,6 +71,14 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         var subscription = new Subscription<TValue>(this);
 
         subscriptions.TryAdd(subscription, subscriber);
+
+        if (Options.ReplayWhenSubscribing) {
+            subscription.ReplayTask = ((Func<Task>)(async () => {
+                foreach (var publishedValue in publishedValues) {
+                    await subscriber(publishedValue.Value, publishedValue.CancellationToken);
+                }
+            }))();
+        }
 
         return subscription;
     }
