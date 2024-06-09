@@ -1,5 +1,7 @@
-﻿<nav class="navbar navbar-expand-xl navbar-light bg-info">
-    <div class="w-100 d-flex justify-content-between flex-column flex-xl-row px-3">
+﻿<GlobalEventHandler OnClick="TryCloseOperatorsMenu" />
+
+<nav class="navbar navbar-expand-md navbar-light bg-info">
+    <div class="w-100 d-flex justify-content-between flex-column flex-md-row px-3">
         <a class="navbar-brand">
             <img src="images/icon_32.png" class="pe-3" />VDT.Core.Operators
         </a>
@@ -11,39 +13,52 @@
             <li class="nav-item">
                 <NavLink class="nav-link" href="Options">Options</NavLink>
             </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="Debounce">Debounce</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="Filter">Filter</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="Flatten">Flatten</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="GroupBy">GroupBy</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="Iterate">Iterate</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="Map">Map</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="Merge">Merge</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="QueueThrottle">QueueThrottle</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="QueueZip">QueueZip</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="Throttle">Throttle</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="Zip">Zip</NavLink>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" role="button" @onclick="ToggleOperatorsMenu" @onkeydown="ToggleIOperatorsMenufNeeded" tabindex="0">
+                    Operators
+                </a>
+
+                @if (IsOperatorsMenuExpanded) {
+                    <ul class="dropdown-menu show">
+                        <li><NavLink class="dropdown-item" href="Debounce">Debounce</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="Filter">Filter</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="Flatten">Flatten</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="GroupBy">GroupBy</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="Iterate">Iterate</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="Map">Map</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="Merge">Merge</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="QueueThrottle">QueueThrottle</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="QueueZip">QueueZip</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="Throttle">Throttle</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="Zip">Zip</NavLink></li>
+                    </ul>
+                }
             </li>
         </ul>
     </div>
 </nav>
+
+@code {
+    private bool ShouldPreventOperatorsMenuClosing { get; set; } = false;
+    private bool IsOperatorsMenuExpanded { get; set; } = false;
+
+    private void ToggleIOperatorsMenufNeeded(KeyboardEventArgs args) {
+        if ("ENTER".Equals(args.Key, StringComparison.InvariantCultureIgnoreCase) || " ".Equals(args.Key, StringComparison.InvariantCultureIgnoreCase)) {
+            ToggleOperatorsMenu();
+        }
+    }
+
+    private void ToggleOperatorsMenu() {
+        IsOperatorsMenuExpanded = !IsOperatorsMenuExpanded;
+        ShouldPreventOperatorsMenuClosing = true;
+    }
+
+    private void TryCloseOperatorsMenu() {
+        if (!ShouldPreventOperatorsMenuClosing) {
+            IsOperatorsMenuExpanded = false;
+        }
+
+        ShouldPreventOperatorsMenuClosing = false;
+    }
+}
