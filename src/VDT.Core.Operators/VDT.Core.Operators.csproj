@@ -8,11 +8,11 @@
 
 	<PropertyGroup>
 		<PackageId>VDT.Core.Operators</PackageId>
-		<Version>1.1.0</Version>
+		<Version>1.2.0</Version>
 		<Title>VDT.Core.Operators</Title>
 		<PackageIcon>icon_128.png</PackageIcon>
 		<Description>Operators for processing and transforming streams of values from a variety of sources</Description>
-		<PackageReleaseNotes>- Add unsubscribe methods</PackageReleaseNotes>
+		<PackageReleaseNotes>- Add options with support for replaying published values to new subscribers</PackageReleaseNotes>
 		<Authors>Maikel Bos</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © 2024 Maikel Bos</Copyright>
