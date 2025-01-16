@@ -12,7 +12,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly ConcurrentQueue<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
 
     /// <inheritdoc/>
-    public OperandStreamOptions Options { get; init; }
+    public OperandStreamOptions<TValue> Options { get; init; }
 
     /// <summary>
     /// Create an operand stream
@@ -23,7 +23,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     /// Create an operand stream
     /// </summary>
     /// <param name="options">Options for this stream</param>
-    public OperandStream(OperandStreamOptions options) {
+    public OperandStream(OperandStreamOptions<TValue> options) {
         Options = options;
     }
 

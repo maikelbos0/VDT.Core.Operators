@@ -12,7 +12,7 @@ public interface IOperandStream<TValue> {
     /// <summary>
     /// Gets or sets the options for this stream
     /// </summary>
-    OperandStreamOptions Options { get; init; }
+    OperandStreamOptions<TValue> Options { get; init; }
 
     /// <summary>
     /// Publish a value to this stream

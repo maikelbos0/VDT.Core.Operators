@@ -135,7 +135,7 @@ public class OperandStreamTests {
 
     [Fact]
     public async Task DoesNotReplayPublishingIfDisabled() {
-        var subject = new OperandStream<string>(new OperandStreamOptions() { ReplayWhenSubscribing = false });
+        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ReplayWhenSubscribing = false });
         var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
 
         await subject.Publish("Foo");
@@ -149,7 +149,7 @@ public class OperandStreamTests {
 
     [Fact]
     public async Task ReplaysPublishingIfEnabled() {
-        var subject = new OperandStream<string>(new OperandStreamOptions() { ReplayWhenSubscribing = true });
+        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ReplayWhenSubscribing = true });
         var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
 
         await subject.Publish("Foo");

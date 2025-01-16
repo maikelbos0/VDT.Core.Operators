@@ -14,7 +14,7 @@ public sealed class Subscription<TValue> {
 
     /// <summary>
     /// Gets the task that represents the publishing to this subscriber of all previously published values if 
-    /// <see cref="OperandStreamOptions.ReplayWhenSubscribing"/> is <see langword="true"/>
+    /// <see cref="OperandStreamOptions{TValue}.ReplayWhenSubscribing"/> is <see langword="true"/>
     /// </summary>
     public Task ReplayTask { get; internal set; } = Task.CompletedTask;
 
