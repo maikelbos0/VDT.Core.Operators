@@ -11,7 +11,7 @@ namespace VDT.Core.Operators;
 public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly ConcurrentDictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
     private readonly ConcurrentQueue<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
-    private int valueGeneratorState = 0;
+    private readonly object generatedValuesTaskLock = new();
     private Task<IEnumerable<TValue>>? generatedValuesTask;
 
     /// <inheritdoc/>
@@ -80,11 +80,19 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     private async Task PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber) {
         if (Options.ValueGenerator != null) {
-            if (Options.ReplayValueGeneratorWhenSubscribing || Interlocked.CompareExchange(ref valueGeneratorState, 1, 0) == 0) {
-                generatedValuesTask = GenerateValues(subscriber);
+            if (Options.ReplayValueGeneratorWhenSubscribing) {
+                await foreach (var value in Options.ValueGenerator()) {
+                    await subscriber(value, CancellationToken.None);
+                }
             }
             else {
-                foreach (var value in await generatedValuesTask!) {
+                lock (generatedValuesTaskLock) {
+                    if (generatedValuesTask == null) {
+                        generatedValuesTask = PublishAndCacheGeneratedValues(Options.ValueGenerator, subscriber);
+                    }
+                }
+
+                foreach (var value in await generatedValuesTask) {
                     await subscriber(value, CancellationToken.None);
                 }
             }
@@ -95,10 +103,10 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         }
     }
 
-    private async Task<IEnumerable<TValue>> GenerateValues(Func<TValue, CancellationToken, Task> subscriber) {
+    private async Task<IEnumerable<TValue>> PublishAndCacheGeneratedValues(Func<IAsyncEnumerable<TValue>> valueGenerator, Func<TValue, CancellationToken, Task> subscriber) {
         var generatedValues = new List<TValue>();
 
-        await foreach (var value in Options.ValueGenerator!()) {
+        await foreach (var value in valueGenerator()) {
             generatedValues.Add(value);
             await subscriber(value, CancellationToken.None);
         }
