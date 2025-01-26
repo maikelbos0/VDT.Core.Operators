@@ -1,5 +1,7 @@
 ﻿using NSubstitute;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -131,6 +133,23 @@ public class OperandStreamTests {
         await subject.Publish("Foo");
 
         subscriber.Received(2).Invoke("Foo");
+    }
+
+    [Fact]
+    public async Task PublishesGeneratedValues() {
+        var valueGenerator = Substitute.For<Func<IAsyncEnumerable<string>>>();
+        valueGenerator.Invoke().Returns(new[] { "Foo", "Bar" }.ToAsyncEnumerable());
+
+        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ValueGenerator = valueGenerator });
+        var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
+
+        var subscription = subject.Subscribe(subscriber);
+
+        await subscription.InitialPublishTask;
+
+        valueGenerator.Received().Invoke();
+        await subscriber.Received().Invoke("Foo", CancellationToken.None);
+        await subscriber.Received().Invoke("Bar", CancellationToken.None);
     }
 
     [Fact]

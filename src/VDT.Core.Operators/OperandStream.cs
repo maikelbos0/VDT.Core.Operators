@@ -76,6 +76,12 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     }
 
     private async Task PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber) {
+        if (Options.ValueGenerator != null) {
+            await foreach (var value in Options.ValueGenerator()) {
+                await subscriber(value, CancellationToken.None);
+            }
+        }
+
         if (Options.ReplayWhenSubscribing) {
             foreach (var publishedValue in publishedValues) {
                 await subscriber(publishedValue.Value, publishedValue.CancellationToken);
