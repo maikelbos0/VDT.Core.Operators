@@ -68,19 +68,19 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public Subscription<TValue> Subscribe(Func<TValue, CancellationToken, Task> subscriber) {
-        var subscription = new Subscription<TValue>(this);
+        var subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber));
 
         subscriptions.TryAdd(subscription, subscriber);
 
-        if (Options.ReplayWhenSubscribing) {
-            subscription.ReplayTask = ((Func<Task>)(async () => {
-                foreach (var publishedValue in publishedValues) {
-                    await subscriber(publishedValue.Value, publishedValue.CancellationToken);
-                }
-            }))();
-        }
-
         return subscription;
+    }
+
+    private async Task PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber) {
+        if (Options.ReplayWhenSubscribing) {
+            foreach (var publishedValue in publishedValues) {
+                await subscriber(publishedValue.Value, publishedValue.CancellationToken);
+            }
+        }
     }
 
     /// <inheritdoc/>

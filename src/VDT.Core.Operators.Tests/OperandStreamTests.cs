@@ -142,7 +142,7 @@ public class OperandStreamTests {
 
         var subscription = subject.Subscribe(subscriber);
 
-        await subscription.ReplayTask;
+        await subscription.InitialPublishTask;
 
         await subscriber.DidNotReceive().Invoke(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
@@ -156,7 +156,7 @@ public class OperandStreamTests {
 
         var subscription = subject.Subscribe(subscriber);
 
-        await subscription.ReplayTask;
+        await subscription.InitialPublishTask;
 
         await subscriber.Received().Invoke("Foo", CancellationToken.None);
     }
