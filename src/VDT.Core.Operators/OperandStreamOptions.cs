@@ -13,7 +13,12 @@ public class OperandStreamOptions<TValue> {
     public bool ReplayWhenSubscribing { get; init; }
 
     /// <summary>
-    /// Gets or sets the optional method that generates values when an <see cref="IOperandStream{TValue}"/> is first subscribed to
+    /// Gets or sets the optional method that generates values when an <see cref="IOperandStream{TValue}"/> is subscribed to
     /// </summary>
     public Func<IAsyncEnumerable<TValue>>? ValueGenerator { get; init; }
+
+    /// <summary>
+    /// Gets or sets the setting to execute the value generator when a new subscriber is added or execute it only once and cache the generated values
+    /// </summary>
+    public bool ReplayValueGeneratorWhenSubscribing { get; init; }
 }

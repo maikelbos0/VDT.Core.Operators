@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,8 @@ namespace VDT.Core.Operators;
 public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly ConcurrentDictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
     private readonly ConcurrentQueue<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
+    private int valueGeneratorState = 0;
+    private Task<IEnumerable<TValue>>? generatedValuesTask;
 
     /// <inheritdoc/>
     public OperandStreamOptions<TValue> Options { get; init; }
@@ -77,16 +80,30 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     private async Task PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber) {
         if (Options.ValueGenerator != null) {
-            await foreach (var value in Options.ValueGenerator()) {
-                await subscriber(value, CancellationToken.None);
+            if (Options.ReplayValueGeneratorWhenSubscribing || Interlocked.CompareExchange(ref valueGeneratorState, 1, 0) == 0) {
+                generatedValuesTask = GenerateValues(subscriber);
+            }
+            else {
+                foreach (var value in await generatedValuesTask!) {
+                    await subscriber(value, CancellationToken.None);
+                }
             }
         }
 
-        if (Options.ReplayWhenSubscribing) {
-            foreach (var publishedValue in publishedValues) {
-                await subscriber(publishedValue.Value, publishedValue.CancellationToken);
-            }
+        foreach (var publishedValue in publishedValues) {
+            await subscriber(publishedValue.Value, publishedValue.CancellationToken);
         }
+    }
+
+    private async Task<IEnumerable<TValue>> GenerateValues(Func<TValue, CancellationToken, Task> subscriber) {
+        var generatedValues = new List<TValue>();
+
+        await foreach (var value in Options.ValueGenerator!()) {
+            generatedValues.Add(value);
+            await subscriber(value, CancellationToken.None);
+        }
+
+        return generatedValues;
     }
 
     /// <inheritdoc/>
