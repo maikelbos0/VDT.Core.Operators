@@ -79,40 +79,40 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     }
 
     private async Task PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber) {
-        if (Options.ValueGenerator != null) {
-            if (Options.ReplayValueGeneratorWhenSubscribing) {
-                await foreach (var value in Options.ValueGenerator()) {
-                    await subscriber(value, CancellationToken.None);
-                }
-            }
-            else {
-                lock (generatedValuesTaskLock) {
-                    if (generatedValuesTask == null) {
-                        generatedValuesTask = PublishAndCacheGeneratedValues(Options.ValueGenerator, subscriber);
-                    }
-                }
+        //if (Options.ValueGenerator != null) {
+        //    if (Options.ReplayValueGeneratorWhenSubscribing) {
+        //        await foreach (var value in Options.ValueGenerator()) {
+        //            await subscriber(value, CancellationToken.None);
+        //        }
+        //    }
+        //    else {
+        //        lock (generatedValuesTaskLock) {
+        //            if (generatedValuesTask == null) {
+        //                generatedValuesTask = PublishAndCacheGeneratedValues(Options.ValueGenerator, subscriber);
+        //            }
+        //        }
 
-                foreach (var value in await generatedValuesTask) {
-                    await subscriber(value, CancellationToken.None);
-                }
-            }
-        }
+        //        foreach (var value in await generatedValuesTask) {
+        //            await subscriber(value, CancellationToken.None);
+        //        }
+        //    }
+        //}
 
         foreach (var publishedValue in publishedValues) {
             await subscriber(publishedValue.Value, publishedValue.CancellationToken);
         }
     }
 
-    private async Task<IEnumerable<TValue>> PublishAndCacheGeneratedValues(Func<IAsyncEnumerable<TValue>> valueGenerator, Func<TValue, CancellationToken, Task> subscriber) {
-        var generatedValues = new List<TValue>();
+    //private async Task<IEnumerable<TValue>> PublishAndCacheGeneratedValues(Func<IAsyncEnumerable<TValue>> valueGenerator, Func<TValue, CancellationToken, Task> subscriber) {
+    //    var generatedValues = new List<TValue>();
 
-        await foreach (var value in valueGenerator()) {
-            generatedValues.Add(value);
-            await subscriber(value, CancellationToken.None);
-        }
+    //    await foreach (var value in valueGenerator()) {
+    //        generatedValues.Add(value);
+    //        await subscriber(value, CancellationToken.None);
+    //    }
 
-        return generatedValues;
-    }
+    //    return generatedValues;
+    //}
 
     /// <inheritdoc/>
     public IOperandStream<TTransformedValue> Pipe<TTransformedValue>(IOperator<TValue, TTransformedValue> op) {
