@@ -13,15 +13,13 @@ public sealed class Subscription<TValue> {
     public IOperandStream<TValue>? OperandStream { get; internal set; }
 
     /// <summary>
-    /// Gets the task that represents the publishing of all initial values to this subscriber either because
-    /// <see cref="OperandStreamOptions{TValue}.ReplayWhenSubscribing"/> is <see langword="true"/> or because 
-    /// <see cref="OperandStreamOptions{TValue}.ValueGenerator"/> has a value
+    /// Gets the task that represents the handling of any published values, including queued values if applicable
     /// </summary>
-    public Task InitialPublishTask { get; private set; }
+    public Task PublishTask { get; private set; }
 
     internal Subscription(IOperandStream<TValue> operandStream, Task initialPublishTask) {
         OperandStream = operandStream;
-        InitialPublishTask = initialPublishTask;
+        PublishTask = initialPublishTask;
     }
 
     /// <summary>

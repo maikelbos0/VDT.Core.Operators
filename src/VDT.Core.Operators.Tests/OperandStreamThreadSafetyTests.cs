@@ -40,11 +40,13 @@ public class OperandStreamThreadSafetyTests {
 
             var subscriber = new Subscriber();
 
-            await subject.Subscribe(subscriber.ReceiveValue).InitialPublishTask;
+            await subject.Subscribe(subscriber.ReceiveValue).PublishTask;
             await Task.Delay(300 - i, cancellationToken);
 
-            Assert.NotEmpty(subscriber.ReceivedValues);
-            Assert.Equal(Enumerable.Range(0, subscriber.ReceivedValues.Count), subscriber.ReceivedValues);
+            var receivedValues = subscriber.ReceivedValues.ToList();
+
+            Assert.NotEmpty(receivedValues);
+            Assert.Equal(Enumerable.Range(0, receivedValues.Count), receivedValues);
         });
 
         cancellationTokenSource.Cancel();

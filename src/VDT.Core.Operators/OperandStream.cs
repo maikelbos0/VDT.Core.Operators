@@ -10,9 +10,11 @@ namespace VDT.Core.Operators;
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
     private readonly ConcurrentDictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
-    private readonly ConcurrentQueue<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
-    private readonly object generatedValuesTaskLock = new();
-    private Task<IEnumerable<TValue>>? generatedValuesTask;
+    private readonly List<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
+    private readonly object publishedValuesLock = new();
+
+    //private readonly object generatedValuesTaskLock = new();
+    //private Task<IEnumerable<TValue>>? generatedValuesTask;
 
     /// <inheritdoc/>
     public OperandStreamOptions<TValue> Options { get; init; }
@@ -36,11 +38,31 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public async Task Publish(TValue value, CancellationToken cancellationToken) {
+        List<Task> publishTasks;
+
         if (Options.ReplayWhenSubscribing) {
-            publishedValues.Enqueue((value, cancellationToken));
+            lock (publishedValuesLock) {
+                publishedValues.Add((value, cancellationToken));
+
+                publishTasks = subscriptions.Select(subscription => Publish(subscription.Key.PublishTask, subscription.Value, value, cancellationToken)).ToList();
+            }
+        }
+        else {
+            publishTasks = subscriptions.Select(subscription => Publish(subscription.Key.PublishTask, subscription.Value, value, cancellationToken)).ToList();
         }
 
-        await Task.WhenAll(subscriptions.Values.Select(subscriber => subscriber(value, cancellationToken)));
+        await Task.WhenAll(publishTasks);
+    }
+
+    private async Task Publish(Task previousPublishTask, Func<TValue, CancellationToken, Task> subscriber, TValue value, CancellationToken cancellationToken) {
+        try {
+            await previousPublishTask.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) {
+            // TODO we want to start when the previous task is done but reconsider how to best accomplish this
+        }
+
+        await subscriber(value, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -71,37 +93,48 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public Subscription<TValue> Subscribe(Func<TValue, CancellationToken, Task> subscriber) {
-        var subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber));
+        Subscription<TValue> subscription;
 
-        subscriptions.TryAdd(subscription, subscriber);
+        lock (publishedValuesLock) {
+            subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber));
+
+            subscriptions.TryAdd(subscription, subscriber);
+        }
 
         return subscription;
     }
 
     private async Task PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber) {
-        //if (Options.ValueGenerator != null) {
-        //    if (Options.ReplayValueGeneratorWhenSubscribing) {
-        //        await foreach (var value in Options.ValueGenerator()) {
-        //            await subscriber(value, CancellationToken.None);
-        //        }
-        //    }
-        //    else {
-        //        lock (generatedValuesTaskLock) {
-        //            if (generatedValuesTask == null) {
-        //                generatedValuesTask = PublishAndCacheGeneratedValues(Options.ValueGenerator, subscriber);
-        //            }
-        //        }
-
-        //        foreach (var value in await generatedValuesTask) {
-        //            await subscriber(value, CancellationToken.None);
-        //        }
-        //    }
-        //}
-
-        foreach (var publishedValue in publishedValues) {
+        foreach (var publishedValue in publishedValues.ToList()) {
             await subscriber(publishedValue.Value, publishedValue.CancellationToken);
         }
     }
+
+    //private void PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber) {
+
+    //    if (Options.ValueGenerator != null) {
+    //        if (Options.ReplayValueGeneratorWhenSubscribing) {
+    //            await foreach (var value in Options.ValueGenerator()) {
+    //                await subscriber(value, CancellationToken.None);
+    //            }
+    //        }
+    //        else {
+    //            lock (generatedValuesTaskLock) {
+    //                if (generatedValuesTask == null) {
+    //                    generatedValuesTask = PublishAndCacheGeneratedValues(Options.ValueGenerator, subscriber);
+    //                }
+    //            }
+
+    //            foreach (var value in await generatedValuesTask) {
+    //                await subscriber(value, CancellationToken.None);
+    //            }
+    //        }
+    //    }
+
+    //    foreach (var publishedValue in publishedValues) {
+    //        _ = subscriber(publishedValue.Value, publishedValue.CancellationToken);
+    //    }
+    //}
 
     //private async Task<IEnumerable<TValue>> PublishAndCacheGeneratedValues(Func<IAsyncEnumerable<TValue>> valueGenerator, Func<TValue, CancellationToken, Task> subscriber) {
     //    var generatedValues = new List<TValue>();

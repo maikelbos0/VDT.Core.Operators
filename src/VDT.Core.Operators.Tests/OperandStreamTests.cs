@@ -1,7 +1,5 @@
 ﻿using NSubstitute;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -203,7 +201,7 @@ public class OperandStreamTests {
 
         var subscription = subject.Subscribe(subscriber);
 
-        await subscription.InitialPublishTask;
+        await subscription.PublishTask;
 
         await subscriber.DidNotReceive().Invoke(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
@@ -217,7 +215,7 @@ public class OperandStreamTests {
 
         var subscription = subject.Subscribe(subscriber);
 
-        await subscription.InitialPublishTask;
+        await subscription.PublishTask;
 
         await subscriber.Received().Invoke("Foo", CancellationToken.None);
     }
