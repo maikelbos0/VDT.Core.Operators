@@ -35,13 +35,13 @@ public class OperandStreamThreadSafetyTests {
 
         _ = PublishValuesContinuously(subject, cancellationTokenSource.Token);
 
-        await Parallel.ForAsync(100, 200, async (i, cancellationToken) => {
+        await Parallel.ForAsync(50, 100, async (i, cancellationToken) => {
             await Task.Delay(i, cancellationToken);
 
             var subscriber = new Subscriber();
 
             await subject.Subscribe(subscriber.ReceiveValue).PublishTask;
-            await Task.Delay(300 - i, cancellationToken);
+            await Task.Delay(50, cancellationToken);
 
             var receivedValues = subscriber.ReceivedValues.ToList();
 

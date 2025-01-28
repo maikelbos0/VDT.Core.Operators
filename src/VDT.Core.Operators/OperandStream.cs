@@ -9,9 +9,13 @@ namespace VDT.Core.Operators;
 
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
+    private const int TRUE = 1;
+    private const int FALSE = 0;
+
     private readonly ConcurrentDictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
     private readonly List<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
     private readonly object publishedValuesLock = new();
+    private int startedValueGeneration = FALSE;
 
     //private readonly object generatedValuesTaskLock = new();
     //private Task<IEnumerable<TValue>>? generatedValuesTask;
@@ -97,62 +101,41 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
         if (Options.ReplayWhenSubscribing) {
             lock (publishedValuesLock) {
-                subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber));
+                subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber, publishedValues.ToList()));
 
                 subscriptions.TryAdd(subscription, subscriber);
             }
         }
         else {
-            subscription = new Subscription<TValue>(this, Task.CompletedTask);
+            subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber, []));
 
             subscriptions.TryAdd(subscription, subscriber);
+        }
+
+        if (Options.ValueGenerator != null && !Options.ReplayValueGeneratorWhenSubscribing && Interlocked.CompareExchange(ref startedValueGeneration, TRUE, FALSE) == FALSE) {
+            _ = GenerateValues(Options.ValueGenerator);
         }
 
         return subscription;
     }
 
-    private async Task PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber) {
-        foreach (var publishedValue in publishedValues.ToList()) {
+    private async Task PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber, IList<(TValue Value, CancellationToken CancellationToken)> publishedValues) {
+        if (Options.ValueGenerator != null && Options.ReplayValueGeneratorWhenSubscribing) {
+            await foreach (var value in Options.ValueGenerator()) {
+                await subscriber(value, CancellationToken.None);
+            }
+        }
+
+        foreach (var publishedValue in publishedValues) {
             await subscriber(publishedValue.Value, publishedValue.CancellationToken);
         }
     }
 
-    //private void PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber) {
-
-    //    if (Options.ValueGenerator != null) {
-    //        if (Options.ReplayValueGeneratorWhenSubscribing) {
-    //            await foreach (var value in Options.ValueGenerator()) {
-    //                await subscriber(value, CancellationToken.None);
-    //            }
-    //        }
-    //        else {
-    //            lock (generatedValuesTaskLock) {
-    //                if (generatedValuesTask == null) {
-    //                    generatedValuesTask = PublishAndCacheGeneratedValues(Options.ValueGenerator, subscriber);
-    //                }
-    //            }
-
-    //            foreach (var value in await generatedValuesTask) {
-    //                await subscriber(value, CancellationToken.None);
-    //            }
-    //        }
-    //    }
-
-    //    foreach (var publishedValue in publishedValues) {
-    //        _ = subscriber(publishedValue.Value, publishedValue.CancellationToken);
-    //    }
-    //}
-
-    //private async Task<IEnumerable<TValue>> PublishAndCacheGeneratedValues(Func<IAsyncEnumerable<TValue>> valueGenerator, Func<TValue, CancellationToken, Task> subscriber) {
-    //    var generatedValues = new List<TValue>();
-
-    //    await foreach (var value in valueGenerator()) {
-    //        generatedValues.Add(value);
-    //        await subscriber(value, CancellationToken.None);
-    //    }
-
-    //    return generatedValues;
-    //}
+    private async Task GenerateValues(Func<IAsyncEnumerable<TValue>> valueGenerator) {
+        await foreach (var value in valueGenerator()) {
+            await Publish(value, CancellationToken.None);
+        }
+    }
 
     /// <inheritdoc/>
     public IOperandStream<TTransformedValue> Pipe<TTransformedValue>(IOperator<TValue, TTransformedValue> op) {
