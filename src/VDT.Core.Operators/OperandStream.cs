@@ -95,8 +95,15 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     public Subscription<TValue> Subscribe(Func<TValue, CancellationToken, Task> subscriber) {
         Subscription<TValue> subscription;
 
-        lock (publishedValuesLock) {
-            subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber));
+        if (Options.ReplayWhenSubscribing) {
+            lock (publishedValuesLock) {
+                subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber));
+
+                subscriptions.TryAdd(subscription, subscriber);
+            }
+        }
+        else {
+            subscription = new Subscription<TValue>(this, Task.CompletedTask);
 
             subscriptions.TryAdd(subscription, subscriber);
         }
