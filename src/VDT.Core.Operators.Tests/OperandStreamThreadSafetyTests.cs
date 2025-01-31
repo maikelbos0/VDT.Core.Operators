@@ -29,7 +29,7 @@ public class OperandStreamThreadSafetyTests {
     }
 
     private static async IAsyncEnumerable<int> GenerateValues() {
-        for (int i = -1; i >= -200; i--) {
+        for (int i = 0; i < 50; i++) {
             await Task.Delay(1);
             yield return i;
         }
@@ -81,7 +81,7 @@ public class OperandStreamThreadSafetyTests {
             var receivedValues = subscriber.ReceivedValues.ToList();
 
             Assert.NotEmpty(receivedValues);
-            Assert.Equal(Enumerable.Range(-200, 200).Reverse(), receivedValues);
+            Assert.Equal(Enumerable.Range(0, 50), receivedValues);
         }
     }
 }

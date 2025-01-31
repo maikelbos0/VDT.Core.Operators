@@ -13,12 +13,9 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     private const int FALSE = 0;
 
     private readonly ConcurrentDictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
-    private readonly List<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
     private readonly object publishedValuesLock = new();
+    private readonly List<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
     private int startedValueGeneration = FALSE;
-
-    //private readonly object generatedValuesTaskLock = new();
-    //private Task<IEnumerable<TValue>>? generatedValuesTask;
 
     /// <inheritdoc/>
     public OperandStreamOptions<TValue> Options { get; init; }
@@ -45,7 +42,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public async Task Publish(TValue value, CancellationToken cancellationToken) {
-        List<Task> publishTasks;
+        IEnumerable<Task> publishTasks;
 
         if (Options.ReplayWhenSubscribing) {
             lock (publishedValuesLock) {
@@ -55,7 +52,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
             }
         }
         else {
-            publishTasks = subscriptions.Select(subscription => Publish(subscription.Key.PublishTask, subscription.Value, value, cancellationToken)).ToList();
+            publishTasks = subscriptions.Select(subscription => Publish(subscription.Key.PublishTask, subscription.Value, value, cancellationToken));
         }
 
         await Task.WhenAll(publishTasks);
@@ -65,9 +62,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         try {
             await previousPublishTask.ConfigureAwait(false);
         }
-        catch (OperationCanceledException) {
-            // TODO we want to start when the previous task is done but reconsider how to best accomplish this
-        }
+        catch (OperationCanceledException) { }
 
         await subscriber(value, cancellationToken);
     }

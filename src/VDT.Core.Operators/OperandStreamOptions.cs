@@ -18,7 +18,7 @@ public class OperandStreamOptions<TValue> {
     public Func<IAsyncEnumerable<TValue>>? ValueGenerator { get; init; }
 
     /// <summary>
-    /// Gets or sets the setting to execute the value generator when a new subscriber is added or execute it only once and cache the generated values
+    /// Gets or sets the setting to execute the value generator only for the first subscriber or for each new subscriber
     /// </summary>
     public bool ReplayValueGeneratorWhenSubscribing { get; init; }
 }
