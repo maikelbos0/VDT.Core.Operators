@@ -8,12 +8,12 @@
 
 	<PropertyGroup>
 		<PackageId>VDT.Core.Operators</PackageId>
-		<Version>2.0.0</Version>
+		<Version>3.0.0</Version>
 		<Title>VDT.Core.Operators</Title>
 		<PackageIcon>icon_128.png</PackageIcon>
 		<Description>Operators for processing and transforming streams of values from a variety of sources</Description>
-		<PackageReleaseNotes>- Removed .net 6.0 and .net 7.0 support
-- Added explicit .net 9.0 support</PackageReleaseNotes>
+		<PackageReleaseNotes>- Added value generator options
+- Made ReplayWhenSubscribing thread-safe</PackageReleaseNotes>
 		<Authors>Maikel Bos</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © 2024 Maikel Bos</Copyright>

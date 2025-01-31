@@ -12,7 +12,15 @@ public interface IOperandStream<TValue> {
     /// <summary>
     /// Gets or sets the options for this stream
     /// </summary>
-    OperandStreamOptions Options { get; init; }
+    OperandStreamOptions<TValue> Options { get; init; }
+
+    /// <summary>
+    /// Gets the <see cref="Task"/> to be awaited for value generation to be finished; only available if 
+    /// <see cref="OperandStreamOptions{TValue}.ValueGenerator"/> is not <see langword="null"/> and
+    /// <see cref="OperandStreamOptions{TValue}.ReplayValueGeneratorWhenSubscribing"/> is <see langword="false"/>, otherwise only
+    /// <see cref="Subscription{TValue}.PublishTask"/> should be awaited
+    /// </summary>
+    Task? ValueGenerationTask { get; }
 
     /// <summary>
     /// Publish a value to this stream

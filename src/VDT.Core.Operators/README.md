@@ -17,6 +17,13 @@ can be parsed as integers before subscribing to the resulting integer stream.
 Each operand stream can be provided with an `OperandStreamOptions` object to specify how subscribers are interacted with.
 
 - `ReplayWhenSubscribing` toggles the setting to publish all previously published values to a new subscriber when it is added
+- `ValueGenerator` sets a method that will be executed when an operand stream is subscribed to, providing initial values
+- `ReplayValueGeneratorWhenSubscribing` toggles the setting to determine when to execute the `ValueGenerator`
+    - `false` to execute `ValueGenerator` only for the first subscriber
+    - `true` to execute `ValueGenerator` for every subscriber
+
+Please note that if `ReplayWhenSubscribing` and `ReplayValueGeneratorWhenSubscribing` are both `false`, any subscribers after the first will only receive
+values from `ValueGenerator` generated after they are subscribed.
 
 ## Operators
 

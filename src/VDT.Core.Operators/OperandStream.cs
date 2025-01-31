@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,11 +9,19 @@ namespace VDT.Core.Operators;
 
 /// <inheritdoc/>
 public class OperandStream<TValue> : IOperandStream<TValue> {
+    private const int TRUE = 1;
+    private const int FALSE = 0;
+
     private readonly ConcurrentDictionary<Subscription<TValue>, Func<TValue, CancellationToken, Task>> subscriptions = [];
-    private readonly ConcurrentQueue<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
+    private readonly object publishedValuesLock = new();
+    private readonly List<(TValue Value, CancellationToken CancellationToken)> publishedValues = [];
+    private int startedValueGeneration = FALSE;
 
     /// <inheritdoc/>
-    public OperandStreamOptions Options { get; init; }
+    public OperandStreamOptions<TValue> Options { get; init; }
+
+    /// <inheritdoc/>
+    public Task? ValueGenerationTask { get; private set; }
 
     /// <summary>
     /// Create an operand stream
@@ -23,7 +32,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     /// Create an operand stream
     /// </summary>
     /// <param name="options">Options for this stream</param>
-    public OperandStream(OperandStreamOptions options) {
+    public OperandStream(OperandStreamOptions<TValue> options) {
         Options = options;
     }
 
@@ -33,11 +42,29 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public async Task Publish(TValue value, CancellationToken cancellationToken) {
+        IEnumerable<Task> publishTasks;
+
         if (Options.ReplayWhenSubscribing) {
-            publishedValues.Enqueue((value, cancellationToken));
+            lock (publishedValuesLock) {
+                publishedValues.Add((value, cancellationToken));
+
+                publishTasks = subscriptions.Select(subscription => Publish(subscription.Key.PublishTask, subscription.Value, value, cancellationToken)).ToList();
+            }
+        }
+        else {
+            publishTasks = subscriptions.Select(subscription => Publish(subscription.Key.PublishTask, subscription.Value, value, cancellationToken));
         }
 
-        await Task.WhenAll(subscriptions.Values.Select(subscriber => subscriber(value, cancellationToken)));
+        await Task.WhenAll(publishTasks);
+    }
+
+    private async Task Publish(Task previousPublishTask, Func<TValue, CancellationToken, Task> subscriber, TValue value, CancellationToken cancellationToken) {
+        try {
+            await previousPublishTask.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) { }
+
+        await subscriber(value, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -68,19 +95,44 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
     /// <inheritdoc/>
     public Subscription<TValue> Subscribe(Func<TValue, CancellationToken, Task> subscriber) {
-        var subscription = new Subscription<TValue>(this);
-
-        subscriptions.TryAdd(subscription, subscriber);
+        Subscription<TValue> subscription;
 
         if (Options.ReplayWhenSubscribing) {
-            subscription.ReplayTask = ((Func<Task>)(async () => {
-                foreach (var publishedValue in publishedValues) {
-                    await subscriber(publishedValue.Value, publishedValue.CancellationToken);
-                }
-            }))();
+            lock (publishedValuesLock) {
+                subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber, publishedValues.ToList()));
+
+                subscriptions.TryAdd(subscription, subscriber);
+            }
+        }
+        else {
+            subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber, []));
+
+            subscriptions.TryAdd(subscription, subscriber);
+        }
+
+        if (Options.ValueGenerator != null && !Options.ReplayValueGeneratorWhenSubscribing && Interlocked.CompareExchange(ref startedValueGeneration, TRUE, FALSE) == FALSE) {
+            ValueGenerationTask = GenerateValues(Options.ValueGenerator);
         }
 
         return subscription;
+    }
+
+    private async Task PublishInitialValues(Func<TValue, CancellationToken, Task> subscriber, IList<(TValue Value, CancellationToken CancellationToken)> publishedValues) {
+        if (Options.ValueGenerator != null && Options.ReplayValueGeneratorWhenSubscribing) {
+            await foreach (var value in Options.ValueGenerator()) {
+                await subscriber(value, CancellationToken.None);
+            }
+        }
+
+        foreach (var publishedValue in publishedValues) {
+            await subscriber(publishedValue.Value, publishedValue.CancellationToken);
+        }
+    }
+
+    private async Task GenerateValues(Func<IAsyncEnumerable<TValue>> valueGenerator) {
+        await foreach (var value in valueGenerator()) {
+            await Publish(value, CancellationToken.None);
+        }
     }
 
     /// <inheritdoc/>

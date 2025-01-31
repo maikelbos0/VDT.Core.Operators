@@ -1,5 +1,7 @@
 ﻿using NSubstitute;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -134,29 +136,120 @@ public class OperandStreamTests {
     }
 
     [Fact]
-    public async Task DoesNotReplayPublishingIfDisabled() {
-        var subject = new OperandStream<string>(new OperandStreamOptions() { ReplayWhenSubscribing = false });
+    public async Task PublishesGeneratedValues() {
+        var valueGenerator = Substitute.For<Func<IAsyncEnumerable<string>>>();
+        valueGenerator.Invoke().Returns(new[] { "Foo", "Bar" }.ToAsyncEnumerable());
+
+        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ValueGenerator = valueGenerator });
+        var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
+
+        var subscription = subject.Subscribe(subscriber);
+
+        valueGenerator.Received().Invoke();
+        Assert.NotNull(subject.ValueGenerationTask);
+        await Task.WhenAll(subject.ValueGenerationTask, subscription.PublishTask);
+
+        await subscriber.Received().Invoke("Foo", CancellationToken.None);
+        await subscriber.Received().Invoke("Bar", CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task GeneratesValuesOnceIfReplayValueGeneratorWhenSubscribingIsDisabledAndReplayWhenSubscribingIsEnabled() {
+        var valueGenerator = Substitute.For<Func<IAsyncEnumerable<string>>>();
+        valueGenerator.Invoke().Returns(new[] { "Foo", "Bar" }.ToAsyncEnumerable());
+
+        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ValueGenerator = valueGenerator, ReplayValueGeneratorWhenSubscribing = false, ReplayWhenSubscribing = true });
+        var subscriber1 = Substitute.For<Func<string, CancellationToken, Task>>();
+        var subscriber2 = Substitute.For<Func<string, CancellationToken, Task>>();
+
+        var subscription1 = subject.Subscribe(subscriber1);
+
+        valueGenerator.Received(1).Invoke();
+        Assert.NotNull(subject.ValueGenerationTask);
+        await Task.WhenAll(subject.ValueGenerationTask, subscription1.PublishTask);
+
+        var subscription2 = subject.Subscribe(subscriber2);
+
+        await subscription2.PublishTask;
+        await subscriber1.Received().Invoke("Foo", CancellationToken.None);
+        await subscriber1.Received().Invoke("Bar", CancellationToken.None);
+        await subscriber2.Received().Invoke("Foo", CancellationToken.None);
+        await subscriber2.Received().Invoke("Bar", CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task DoesNotReplayGeneratedValuesIfReplayValueGeneratorWhenSubscribingAndReplayWhenSubscribingAreDisabled() {
+        var valueGenerator = Substitute.For<Func<IAsyncEnumerable<string>>>();
+        valueGenerator.Invoke().Returns(new[] { "Foo", "Bar" }.ToAsyncEnumerable());
+
+        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ValueGenerator = valueGenerator, ReplayValueGeneratorWhenSubscribing = false, ReplayWhenSubscribing = false });
+        var subscriber1 = Substitute.For<Func<string, CancellationToken, Task>>();
+        var subscriber2 = Substitute.For<Func<string, CancellationToken, Task>>();
+
+        var subscription1 = subject.Subscribe(subscriber1);
+
+        valueGenerator.Received(1).Invoke();
+        Assert.NotNull(subject.ValueGenerationTask);
+        await Task.WhenAll(subject.ValueGenerationTask, subscription1.PublishTask);
+
+        var subscription2 = subject.Subscribe(subscriber2);
+
+        await subscription2.PublishTask;
+
+        await subscriber1.Received().Invoke("Foo", CancellationToken.None);
+        await subscriber1.Received().Invoke("Bar", CancellationToken.None);
+        await subscriber2.DidNotReceive().Invoke(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GeneratesValuesForEverySubscriberIfReplayValueGeneratorWhenSubscribingIsEnabled(bool replayWhenSubscribing) {
+        var valueGenerator = Substitute.For<Func<IAsyncEnumerable<string>>>();
+        valueGenerator.Invoke().Returns(new[] { "Foo", "Bar" }.ToAsyncEnumerable());
+
+        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ValueGenerator = valueGenerator, ReplayValueGeneratorWhenSubscribing = true, ReplayWhenSubscribing = replayWhenSubscribing });
+        var subscriber1 = Substitute.For<Func<string, CancellationToken, Task>>();
+        var subscriber2 = Substitute.For<Func<string, CancellationToken, Task>>();
+
+        var subscription1 = subject.Subscribe(subscriber1);
+        var subscription2 = subject.Subscribe(subscriber2);
+
+        await Task.WhenAll(subscription1.PublishTask, subscription2.PublishTask);
+
+        valueGenerator.Received(2).Invoke();
+        Assert.Null(subject.ValueGenerationTask);
+
+        await subscriber1.Received().Invoke("Foo", CancellationToken.None);
+        await subscriber1.Received().Invoke("Bar", CancellationToken.None);
+        await subscriber2.Received().Invoke("Foo", CancellationToken.None);
+        await subscriber2.Received().Invoke("Bar", CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task PublishesPreviousValuesToNewSubscriberIfReplayWhenSubscribingIsDisabled() {
+        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ReplayWhenSubscribing = false });
         var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
 
         await subject.Publish("Foo");
 
         var subscription = subject.Subscribe(subscriber);
 
-        await subscription.ReplayTask;
+        await subscription.PublishTask;
 
         await subscriber.DidNotReceive().Invoke(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task ReplaysPublishingIfEnabled() {
-        var subject = new OperandStream<string>(new OperandStreamOptions() { ReplayWhenSubscribing = true });
+    public async Task PublishesPreviousValuesToNewSubscriberIfReplayWhenSubscribingIsEnabled() {
+        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ReplayWhenSubscribing = true });
         var subscriber = Substitute.For<Func<string, CancellationToken, Task>>();
 
         await subject.Publish("Foo");
 
         var subscription = subject.Subscribe(subscriber);
 
-        await subscription.ReplayTask;
+        await subscription.PublishTask;
 
         await subscriber.Received().Invoke("Foo", CancellationToken.None);
     }

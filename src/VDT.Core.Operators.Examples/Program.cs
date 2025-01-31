@@ -6,6 +6,5 @@ builder.RootComponents.Add<App>("#app");
 
 await builder.Build().RunAsync();
 
-// TODO value generator method in stream ctor?
 // TODO error handling?
 // TODO complete?
