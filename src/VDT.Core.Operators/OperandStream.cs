@@ -23,6 +23,9 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
     /// <inheritdoc/>
     public OperandStreamOptions<TValue> Options { get; init; }
 
+    /// <inheritdoc/>
+    public Task? ValueGenerationTask { get; private set; }
+
     /// <summary>
     /// Create an operand stream
     /// </summary>
@@ -113,7 +116,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         }
 
         if (Options.ValueGenerator != null && !Options.ReplayValueGeneratorWhenSubscribing && Interlocked.CompareExchange(ref startedValueGeneration, TRUE, FALSE) == FALSE) {
-            _ = GenerateValues(Options.ValueGenerator);
+            ValueGenerationTask = GenerateValues(Options.ValueGenerator);
         }
 
         return subscription;

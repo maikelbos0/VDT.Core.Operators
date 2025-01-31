@@ -145,9 +145,10 @@ public class OperandStreamTests {
 
         var subscription = subject.Subscribe(subscriber);
 
-        await subscription.PublishTask;
-
         valueGenerator.Received().Invoke();
+        Assert.NotNull(subject.ValueGenerationTask);
+        await Task.WhenAll(subject.ValueGenerationTask, subscription.PublishTask);
+
         await subscriber.Received().Invoke("Foo", CancellationToken.None);
         await subscriber.Received().Invoke("Bar", CancellationToken.None);
     }
@@ -157,16 +158,17 @@ public class OperandStreamTests {
         var valueGenerator = Substitute.For<Func<IAsyncEnumerable<string>>>();
         valueGenerator.Invoke().Returns(new[] { "Foo", "Bar" }.ToAsyncEnumerable());
 
-        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ValueGenerator = valueGenerator, ReplayValueGeneratorWhenSubscribing = false });
+        var subject = new OperandStream<string>(new OperandStreamOptions<string>() { ValueGenerator = valueGenerator, ReplayValueGeneratorWhenSubscribing = false, ReplayWhenSubscribing = true });
         var subscriber1 = Substitute.For<Func<string, CancellationToken, Task>>();
         var subscriber2 = Substitute.For<Func<string, CancellationToken, Task>>();
 
         var subscription1 = subject.Subscribe(subscriber1);
         var subscription2 = subject.Subscribe(subscriber2);
 
-        await Task.WhenAll(subscription1.PublishTask, subscription2.PublishTask);
-
         valueGenerator.Received(1).Invoke();
+        Assert.NotNull(subject.ValueGenerationTask);
+        await Task.WhenAll(subject.ValueGenerationTask, subscription1.PublishTask, subscription2.PublishTask);
+
         await subscriber1.Received().Invoke("Foo", CancellationToken.None);
         await subscriber1.Received().Invoke("Bar", CancellationToken.None);
         await subscriber2.Received().Invoke("Foo", CancellationToken.None);
@@ -188,6 +190,8 @@ public class OperandStreamTests {
         await Task.WhenAll(subscription1.PublishTask, subscription2.PublishTask);
 
         valueGenerator.Received(2).Invoke();
+        Assert.Null(subject.ValueGenerationTask);
+
         await subscriber1.Received().Invoke("Foo", CancellationToken.None);
         await subscriber1.Received().Invoke("Bar", CancellationToken.None);
         await subscriber2.Received().Invoke("Foo", CancellationToken.None);
