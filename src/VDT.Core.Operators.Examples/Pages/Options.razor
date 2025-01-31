@@ -3,54 +3,108 @@
 <h1>Options</h1>
 
 <p>
-    Each operand stream can be provided with an <code>OperandStreamOptions</code> object to specify how subscribers are interacted with.
+	Each operand stream can be provided with an <code>OperandStreamOptions</code> object to specify how subscribers are interacted with.
 </p>
 
 <ul>
-    <li><code>ReplayWhenSubscribing</code> toggles the setting to publish all previously published values to a new subscriber when it is added</li>
+	<li><code>ReplayWhenSubscribing</code> toggles the setting to publish all previously published values to a new subscriber when it is added</li>
+	<li><code>ValueGenerator</code> sets a method that will be executed when an operand stream is subscribed to, providing initial values</li>
+	<li>
+		<code>ReplayValueGeneratorWhenSubscribing</code> toggles the setting to determine when to execute the <code>ValueGenerator</code>
+		<ul>
+			<li><code>false</code> to execute <code>ValueGenerator</code> only for the first subscriber</li>
+			<li><code>true</code> to execute <code>ValueGenerator</code> for every subscriber</li>
+		</ul>
+	</li>
 </ul>
 
-<div class="row">
-    <div class="col-12 col-md-6 col-xl-4 mb-3">
-        <label class="form-label" for="replayWhenSubscribing">Replay when subscribing</label>
-        <select class="form-select" id="replayWhenSubscribing" @onchange="args => ReplayWhenSubscribing = bool.Parse(args.Value?.ToString()!)">
-            <option value="true" selected="@ReplayWhenSubscribing">Enabled</option>
-            <option value="false" selected="@(!ReplayWhenSubscribing)">Disabled</option>
-        </select>
-    </div>
+<p>
+	Please note that if <code>ReplayWhenSubscribing</code> and <code>ReplayValueGeneratorWhenSubscribing</code> are both <code>false</code>, any subscribers
+	after the first will only receive values from <code>ValueGenerator</code> generated after they are subscribed.
+</p>
 
-    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
-        <button class="btn btn-primary w-100" @onclick="CreateStream">Create stream</button>
-    </div>
+<div class="row">
+	<div class="col-12 col-md-6 col-xl-4 mb-3">
+		<label class="form-label" for="replayWhenSubscribing">Replay when subscribing</label>
+		<select class="form-select" id="replayWhenSubscribing" @onchange="args => ReplayWhenSubscribing = bool.Parse(args.Value?.ToString()!)">
+			<option value="true" selected="@ReplayWhenSubscribing">Enabled</option>
+			<option value="false" selected="@(!ReplayWhenSubscribing)">Disabled</option>
+		</select>
+	</div>
+
+	<div class="col-12 col-md-6 col-xl-4 mb-3">
+		<label class="form-label" for="useValueGenerator">Use value generator</label>
+		<select class="form-select" id="useValueGenerator" @onchange="args => UseValueGenerator = bool.Parse(args.Value?.ToString()!)">
+			<option value="true" selected="@UseValueGenerator">Enabled</option>
+			<option value="false" selected="@(!UseValueGenerator)">Disabled</option>
+		</select>
+	</div>
+
+	<div class="col-12 col-md-6 col-xl-4 mb-3">
+		<label class="form-label" for="replayValueGeneratorWhenSubscribing">Replay value generator when subscribing</label>
+		<select class="form-select" id="replayValueGeneratorWhenSubscribing" @onchange="args => ReplayValueGeneratorWhenSubscribing = bool.Parse(args.Value?.ToString()!)">
+			<option value="true" selected="@ReplayValueGeneratorWhenSubscribing">Enabled</option>
+			<option value="false" selected="@(!ReplayValueGeneratorWhenSubscribing)">Disabled</option>
+		</select>
+	</div>
+
+	<div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+		<button class="btn btn-primary w-100" @onclick="CreateStream">Create stream</button>
+	</div>
 </div>
 
 <div class="row">
-    <div class="col-12 col-md-6 col-xl-4 mb-3">
-        <label for="value" class="form-label">Value</label>
-        <input type="text" class="form-control" id="value" @bind-value="@Value" />
-    </div>
+	<div class="col-12 col-md-6 col-xl-4 mb-3">
+		<label for="value" class="form-label">Value</label>
+		<input type="text" class="form-control" id="value" @bind-value="@Value" />
+	</div>
 
-    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
-        <button class="btn btn-primary w-100" @onclick="async () => await valueStream.Publish(Value)">Publish</button>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
-        <button class="btn btn-primary w-100" @onclick="() => valueStream.Subscribe(subscriber.Subscribe)">Subscribe</button>
-    </div>
+	<div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+		<button class="btn btn-primary w-100" @onclick="async () => await valueStream.Publish(Value)">Publish</button>
+	</div>
 </div>
 
-<Subscriber TValue="string" @ref="subscriber" />
+<div class="row">
+	<div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+		<button class="btn btn-primary w-100" @onclick="() => valueStream.Subscribe(subscriber1.Subscribe)">Add first subscriber</button>
+	</div>
+
+	<div class="col-12 col-md-6 col-xl-4 mb-3 align-self-end">
+		<button class="btn btn-primary w-100" @onclick="() => valueStream.Subscribe(subscriber2.Subscribe)">Add second subscriber</button>
+	</div>
+</div>
+
+<Subscriber TValue="string" @ref="subscriber1" />
+<Subscriber TValue="string" @ref="subscriber2" />
 
 @code {
-    private IOperandStream<string> valueStream = new OperandStream<string>();
-    private Subscriber<string> subscriber = null!;
+	private int NextGeneratedValue { get; set; }
+	private IList<Subscription<string>> Subscriptions { get; set; } = [];
+	private IOperandStream<string> valueStream = new OperandStream<string>();
+	private Subscriber<string> subscriber1 = null!;
+	private Subscriber<string> subscriber2 = null!;
 
-    private bool ReplayWhenSubscribing { get; set; }
-    private string Value { get; set; } = "Value";
+	private bool ReplayWhenSubscribing { get; set; }
+	private bool UseValueGenerator { get; set; }
+	private bool ReplayValueGeneratorWhenSubscribing { get; set; }
+	private string Value { get; set; } = "Value";
 
-    private void CreateStream() {
-        valueStream.UnsubscribeAll();
-        valueStream = new OperandStream<string>(new OperandStreamOptions<string>() { ReplayWhenSubscribing = ReplayWhenSubscribing });
-        subscriber.Clear();
-    }
+	private void CreateStream()	{
+		NextGeneratedValue = 0;
+		valueStream.UnsubscribeAll();
+		valueStream = new OperandStream<string>(new OperandStreamOptions<string>() {
+			ReplayWhenSubscribing = ReplayWhenSubscribing,
+			ValueGenerator = UseValueGenerator ? ValueGenerator : null,
+			ReplayValueGeneratorWhenSubscribing = ReplayValueGeneratorWhenSubscribing
+		});
+		subscriber1.Clear();
+		subscriber2.Clear();
+	}
+
+	private async IAsyncEnumerable<string> ValueGenerator() {
+		for (var i = 0; i < 10; i++) {
+			await Task.Delay(500);
+			yield return $"Generated value {++NextGeneratedValue}";
+		}
+	}
 }
