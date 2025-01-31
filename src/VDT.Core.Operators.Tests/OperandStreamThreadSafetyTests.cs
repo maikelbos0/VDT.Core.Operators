@@ -28,6 +28,13 @@ public class OperandStreamThreadSafetyTests {
         }
     }
 
+    private static async IAsyncEnumerable<int> GenerateValues() {
+        for (int i = -1; i >= -200; i--) {
+            await Task.Delay(1);
+            yield return i;
+        }
+    }
+
     [Fact]
     public async Task ReplayWhenSubscribingDoesNotSkipValues() {
         var subject = new OperandStream<int>(new OperandStreamOptions<int>() { ReplayWhenSubscribing = true });
@@ -50,6 +57,32 @@ public class OperandStreamThreadSafetyTests {
         });
 
         cancellationTokenSource.Cancel();
+    }
+
+    [Fact]
+    public async Task ValueGeneratorDoesNotSkipValuesWithoutReplayValueGeneratorWhenSubscribing() {
+        var subject = new OperandStream<int>(new OperandStreamOptions<int>() { ValueGenerator = GenerateValues, ReplayValueGeneratorWhenSubscribing = false, ReplayWhenSubscribing = true });
+        var subscribers = new List<Subscriber>();
+
+        await Parallel.ForAsync(50, 100, async (i, cancellationToken) => {
+            await Task.Delay(i, cancellationToken);
+
+            var subscriber = new Subscriber();
+
+            subscribers.Add(subscriber);
+
+            await subject.Subscribe(subscriber.ReceiveValue).PublishTask;
+        });
+
+        Assert.NotNull(subject.ValueGenerationTask);
+        await subject.ValueGenerationTask;
+
+        foreach (var subscriber in subscribers) {
+            var receivedValues = subscriber.ReceivedValues.ToList();
+
+            Assert.NotEmpty(receivedValues);
+            Assert.Equal(Enumerable.Range(-200, 200).Reverse(), receivedValues);
+        }
     }
 }
 #endif
