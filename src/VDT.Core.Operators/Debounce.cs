@@ -10,7 +10,7 @@ namespace VDT.Core.Operators;
 /// <typeparam name="TValue">Type of value to debounce</typeparam>
 public class Debounce<TValue> : IOperator<TValue, TValue> {
     private readonly Func<CancellationToken, Task<int>> delayFunc;
-    private int operationId = 0;
+    private int operationId = int.MaxValue - 1;
 
     internal Func<int, CancellationToken, Task> Delay { get; set; } = Task.Delay;
 
@@ -45,7 +45,6 @@ public class Debounce<TValue> : IOperator<TValue, TValue> {
 
     /// <inheritdoc/>
     public async Task Execute(TValue value, IOperandStream<TValue> targetStream, CancellationToken cancellationToken) {
-        // Since Interlocked.Increment wraps, this will debounce properly until 2^32 operations occur in the delay
         var expectedOperationId = Interlocked.Increment(ref operationId);
 
         await Delay(await delayFunc(cancellationToken), cancellationToken);

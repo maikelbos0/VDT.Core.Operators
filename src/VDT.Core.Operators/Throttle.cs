@@ -51,7 +51,6 @@ public class Throttle<TValue> : IOperator<TValue, TValue> {
         var requiredDelayInMilliseconds = (nextPublishTime - now).TotalMilliseconds;
 
         if (requiredDelayInMilliseconds > 0) {
-            // Since Interlocked.Increment wraps, this will throttle properly until 2^32 operations occur in the delay
             var expectedOperationId = Interlocked.Increment(ref operationId);
 
             await Delay((int)requiredDelayInMilliseconds, cancellationToken);

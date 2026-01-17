@@ -48,7 +48,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
             lock (publishedValuesLock) {
                 publishedValues.Add((value, cancellationToken));
 
-                publishTasks = subscriptions.Select(subscription => Publish(subscription.Key.PublishTask, subscription.Value, value, cancellationToken)).ToList();
+                publishTasks = [.. subscriptions.Select(subscription => Publish(subscription.Key.PublishTask, subscription.Value, value, cancellationToken))];
             }
         }
         else {
@@ -58,7 +58,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
         await Task.WhenAll(publishTasks);
     }
 
-    private async Task Publish(Task previousPublishTask, Func<TValue, CancellationToken, Task> subscriber, TValue value, CancellationToken cancellationToken) {
+    private static async Task Publish(Task previousPublishTask, Func<TValue, CancellationToken, Task> subscriber, TValue value, CancellationToken cancellationToken) {
         try {
             await previousPublishTask.ConfigureAwait(false);
         }
@@ -99,7 +99,7 @@ public class OperandStream<TValue> : IOperandStream<TValue> {
 
         if (Options.ReplayWhenSubscribing) {
             lock (publishedValuesLock) {
-                subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber, publishedValues.ToList()));
+                subscription = new Subscription<TValue>(this, PublishInitialValues(subscriber, [.. publishedValues]));
 
                 subscriptions.TryAdd(subscription, subscriber);
             }
