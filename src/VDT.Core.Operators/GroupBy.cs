@@ -52,7 +52,7 @@ public class GroupBy<TValue, TKey> : IOperator<TValue, List<TValue>> {
     /// Create a group by operator
     /// </summary>
     /// <param name="keySelector">Method that returns the key for a given value</param>
-    public GroupBy(Func<TValue, CancellationToken, Task<TKey>> keySelector) 
+    public GroupBy(Func<TValue, CancellationToken, Task<TKey>> keySelector)
         : this(keySelector, EqualityComparer<TKey>.Default) { }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class GroupBy<TValue, TKey> : IOperator<TValue, List<TValue>> {
     /// <inheritdoc/>
     public async Task Execute(TValue value, IOperandStream<List<TValue>> targetStream, CancellationToken cancellationToken) {
         var key = await keySelector(value, cancellationToken);
-        List<TValue>? valuesToPublish = null;
+        List<TValue>? valuesToPublish;
 
         lock (groupLock) {
             if (keyComparer.Equals(previousKey, key)) {

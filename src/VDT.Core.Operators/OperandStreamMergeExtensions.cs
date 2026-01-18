@@ -15,7 +15,7 @@ public static class OperandStreamMergeExtensions {
     /// <returns><see cref="IOperandStream{TValue}"/> that all received values will be published to</returns>
     public static IOperandStream<TValue> Merge<TValue>(this IOperandStream<TValue> operandStream, params IOperandStream<TValue>[] additionalStreams)
         => operandStream.Pipe(new Merge<TValue>(), additionalStreams);
-    
+
     /// <summary>
     /// Publish values received from two or more instances of <see cref="IOperandStream{TValue}"/> of the same <typeparamref name="TValue"/>
     /// </summary>

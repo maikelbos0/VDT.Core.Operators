@@ -94,7 +94,7 @@ public class DebounceTests {
         var targetStream = Substitute.For<IOperandStream<string>>();
         var cancellationTokenSource = new CancellationTokenSource();
 
-        subject.Delay = async (_, cancellationToken)  => {
+        subject.Delay = async (_, cancellationToken) => {
             while (isDelayed) {
                 await Task.Delay(1, cancellationToken);
             }
