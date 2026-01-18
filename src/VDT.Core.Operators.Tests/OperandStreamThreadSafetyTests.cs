@@ -11,19 +11,18 @@ public class OperandStreamThreadSafetyTests {
     private class Subscriber {
         public List<int> ReceivedValues { get; set; } = [];
 
-
         public async Task ReceiveValue(int value, CancellationToken cancellationToken) {
             await Task.Delay(2, cancellationToken);
             ReceivedValues.Add(value);
         }
     }
 
-    private static async Task PublishValuesContinuously(IOperandStream<int> operandStream, CancellationToken cancellationToken) {
+    private static async Task PublishValuesContinuously(OperandStream<int> operandStream, CancellationToken cancellationToken) {
         var value = 0;
 
         while (true) {
             await Task.Delay(1, cancellationToken);
-            await operandStream.Publish(value++);
+            await operandStream.Publish(value++, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
         }
     }

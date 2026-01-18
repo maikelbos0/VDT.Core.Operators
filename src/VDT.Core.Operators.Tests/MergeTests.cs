@@ -14,7 +14,7 @@ public class MergeTests {
         var additionalStream2 = new OperandStream<string>();
         var cancellationTokenSource = new CancellationTokenSource();
 
-        subject.Initialize(targetStream, new[] { additionalStream1, additionalStream2 });
+        subject.Initialize(targetStream, [additionalStream1, additionalStream2]);
 
         await additionalStream1.Publish("Foo", cancellationTokenSource.Token);
         await subject.Execute("Baz", targetStream, cancellationTokenSource.Token);

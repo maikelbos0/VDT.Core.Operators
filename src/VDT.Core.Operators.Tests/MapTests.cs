@@ -39,7 +39,7 @@ public class MapTests {
         func.Invoke(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(callInfo => $"{callInfo.ArgAt<string>(0)}{callInfo.ArgAt<string>(0)}");
 
         await subject.Execute("Foo", targetStream, cancellationTokenSource.Token);
-        
+
         await func.Received().Invoke("Foo", cancellationTokenSource.Token);
         await targetStream.Received().Publish("FooFoo", cancellationTokenSource.Token);
     }
