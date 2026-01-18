@@ -10,7 +10,7 @@ namespace VDT.Core.Operators;
 /// <typeparam name="TValue">Type of value to debounce</typeparam>
 public class Debounce<TValue> : IOperator<TValue, TValue> {
     private readonly Func<CancellationToken, Task<int>> delayFunc;
-    private int operationId = int.MaxValue - 1;
+    private int operationId = 0;
 
     internal Func<int, CancellationToken, Task> Delay { get; set; } = Task.Delay;
 
